@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Selección de Formulario{% endblock %}
+
+{% block content %}
+<div class="px-40 flex flex-1 justify-center py-5">
+    <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+        <div class="flex flex-wrap justify-between gap-3 p-4">
+            <p class="text-[#111318] tracking-light text-[32px] font-bold leading-tight min-w-72">
+                Seleccionar Formulario y Auto-completar
+            </p>
+        </div>
+        
+        <form method="post" action="{% url 'forms_generation:generate' %}">
+            {% csrf_token %}
+            {% if document %}
+                <input type="hidden" name="document_id" value="{{ document.id }}">
+            {% endif %}
+            
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                <label class="flex flex-col min-w-40 flex-1">
+                    <select name="form_type" required
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111318] focus:outline-0 focus:ring-0 border border-[#dbdfe6] bg-white focus:border-[#dbdfe6] h-14 placeholder:text-[#616f89] p-[15px] text-base font-normal leading-normal">
+                        <option value="">Seleccionar Formulario</option>
+                        <option value="contrato_mandato">Contrato de Mandato</option>
+                        <option value="contrato_compraventa">Contrato de Compraventa</option>
+                        <option value="formulario_tramite">Formulario de Trámite</option>
+                    </select>
+                </label>
+            </div>
+            
+            <h2 class="text-[#111318] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+                Vista Previa del Formulario Auto-completado
+            </h2>
+            
+            <div class="p-4">
+                <div class="flex flex-col items-stretch justify-start rounded-lg">
+                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg bg-gray-200 flex items-center justify-center">
+                        <div class="text-center">
+                            <p class="text-[#111318] text-lg font-bold leading-tight tracking-[-0.015em]">
+                                Formulario de Registro Vehicular
+                            </p>
+                            <div class="flex items-end gap-3 justify-center mt-4">
+                                <p class="text-[#616f89] text-base font-normal leading-normal">
+                                    Vista previa del formulario de registro vehicular auto-completado. Revisa todos los campos para verificar su precisión antes de enviar.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex px-4 py-3 justify-end">
+                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#135bec] text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="truncate">Generar Formulario</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

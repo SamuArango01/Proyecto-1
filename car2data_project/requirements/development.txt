@@ -1,0 +1,15 @@
+-r base.txt
+
+# Herramientas de desarrollo
+pytest==7.4.3
+pytest-django==4.7.0
+coverage==7.3.2
+black==23.10.1
+flake8==6.1.0
+
+# Debugging
+ipdb==0.13.13
+django-debug-toolbar==4.2.0
+
+# Faker para datos de prueba
+Faker==19.12.0

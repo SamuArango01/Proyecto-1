@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Historial de Documentos{% endblock %}
+
+{% block content %}
+<div class="px-40 flex flex-1 justify-center py-5">
+    <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+        <div class="flex flex-wrap justify-between gap-3 p-4">
+            <div class="flex min-w-72 flex-col gap-3">
+                <p class="text-[#111318] tracking-light text-[32px] font-bold leading-tight">Historial de Documentos</p>
+                <p class="text-[#616f89] text-sm font-normal leading-normal">
+                    Ve y gestiona tus documentos subidos y formularios generados.
+                </p>
+            </div>
+        </div>
+        
+        <div class="px-4 py-3">
+            <label class="flex flex-col min-w-40 h-12 w-full">
+                <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                    <div class="text-[#616f89] flex border-none bg-[#f0f2f4] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                        </svg>
+                    </div>
+                    <input placeholder="Buscar documentos" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111318] focus:outline-0 focus:ring-0 border-none bg-[#f0f2f4] focus:border-none h-full placeholder:text-[#616f89] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal">
+                </div>
+            </label>
+        </div>
+        
+        <div class="px-4 py-3">
+            <div class="flex overflow-hidden rounded-lg border border-[#dbdfe6] bg-white">
+                <table class="flex-1">
+                    <thead>
+                        <tr class="bg-white">
+                            <th class="px-4 py-3 text-left text-[#111318] text-sm font-medium leading-normal">Nombre del Documento</th>
+                            <th class="px-4 py-3 text-left text-[#111318] text-sm font-medium leading-normal">Fecha de Subida</th>
+                            <th class="px-4 py-3 text-left text-[#111318] text-sm font-medium leading-normal">Estado</th>
+                            <th class="px-4 py-3 text-left text-[#616f89] text-sm font-medium leading-normal">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr class="border-t border-t-[#dbdfe6]">
+                            <td class="px-4 py-2 text-[#111318] text-sm font-normal leading-normal">
+                                {{ document.name }}
+                            </td>
+                            <td class="px-4 py-2 text-[#616f89] text-sm font-normal leading-normal">
+                                {{ document.uploaded_at|date:"Y-m-d" }}
+                            </td>
+                            <td class="px-4 py-2 text-sm font-normal leading-normal">
+                                <span class="px-3 py-1 rounded-full text-xs
+                                    {% if document.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif document.status == 'processing' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ document.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-[#616f89] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <a href="{% url 'documents:data_preview' document.id %}" class="text-[#135bec] hover:underline">Ver</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="border-t border-t-[#dbdfe6]">
+                            <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                No hay documentos. <a href="{% url 'documents:upload' %}" class="text-[#135bec]">Sube tu primer documento</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

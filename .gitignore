@@ -1,0 +1,34 @@
+# Python
+*.pyc
+*/__pycache__/
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+media/
+staticfiles/
+
+# Environment
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.bak
