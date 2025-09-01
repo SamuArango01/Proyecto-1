@@ -24,9 +24,6 @@ class Migration(migrations.Migration):
             name="document_type",
             field=models.CharField(
                 choices=[
-                    ("registration", "Registro Vehicular"),
-                    ("insurance", "Seguro"),
-                    ("inspection", "Inspección"),
                     ("ownership", "Tarjeta de Propiedad"),
                     ("unknown", "No identificado"),
                 ],

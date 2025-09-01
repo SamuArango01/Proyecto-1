@@ -30,9 +30,6 @@ class Migration(migrations.Migration):
                     "document_type",
                     models.CharField(
                         choices=[
-                            ("registration", "Registro Vehicular"),
-                            ("insurance", "Seguro"),
-                            ("inspection", "Inspección"),
                             ("ownership", "Tarjeta de Propiedad"),
                         ],
                         max_length=50,

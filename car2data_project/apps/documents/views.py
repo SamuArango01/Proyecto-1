@@ -1,5 +1,6 @@
 import os
 import threading
+import traceback
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, CreateView, ListView
@@ -12,6 +13,9 @@ from django.views.decorators.http import require_POST
 from .models import Document, ExtractedData
 from .forms import DocumentUploadForm
 from services.pdf_extractor import PDFExtractor
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'documents/dashboard.html'
@@ -34,6 +38,7 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
         
         # Iniciar procesamiento en segundo plano
         if self.object.file:
+            logger.info(f"Iniciando procesamiento para documento {self.object.id}")
             thread = threading.Thread(
                 target=self.process_document_background,
                 args=(self.object.id,)
@@ -46,37 +51,56 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
     
     def process_document_background(self, document_id):
         """Procesa el documento en segundo plano"""
+        document = None
         try:
+            logger.info(f"Iniciando procesamiento en segundo plano para documento {document_id}")
+            
             document = Document.objects.get(id=document_id)
             document.status = 'processing'
             document.save()
             
+            logger.info(f"Documento marcado como 'processing': {document.name}")
+            
+            # Verificar que el archivo existe
+            if not document.file or not os.path.exists(document.file.path):
+                raise FileNotFoundError(f"El archivo no existe: {document.file.path if document.file else 'None'}")
+            
             # Obtener la ruta del archivo
             pdf_path = document.file.path
+            logger.info(f"Ruta del PDF: {pdf_path}")
+            
+            # Crear extractor y probar conexión
+            extractor = PDFExtractor()
+            
+            # Probar conexión antes de procesar
+            if not extractor.test_connection():
+                raise Exception("No se pudo establecer conexión con el servicio de IA")
+            
+            logger.info("Conexión con Gemini establecida correctamente")
             
             # Extraer información usando Gemini
-            extractor = PDFExtractor()
             extracted_data = extractor.extract_vehicle_info(pdf_path)
+            
+            logger.info(f"Datos extraídos: {extracted_data}")
             
             # Guardar los datos extraídos
             document.set_extracted_data(extracted_data)
             
             # Actualizar el tipo de documento si se identificó
-            if extracted_data.get('tipo_documento') != 'No identificado':
+            if extracted_data.get('tipo_documento') and extracted_data.get('tipo_documento') != 'No identificado':
+                doc_type = extracted_data.get('tipo_documento', '').lower()
                 doc_type_mapping = {
                     'matrícula': 'registration',
+                    'matricula': 'registration',
                     'registro': 'registration',
-                    'SOAT': 'insurance',
-                    'seguro': 'insurance',
-                    'revisión': 'inspection',
-                    'inspección': 'inspection',
                     'propiedad': 'ownership',
                     'tarjeta': 'ownership'
                 }
                 
                 for key, value in doc_type_mapping.items():
-                    if key.lower() in extracted_data.get('tipo_documento', '').lower():
+                    if key in doc_type:
                         document.document_type = value
+                        logger.info(f"Tipo de documento actualizado a: {value}")
                         break
             
             # Marcar como completado
@@ -84,19 +108,26 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
             document.processed_at = timezone.now()
             document.save()
             
+            logger.info(f"Procesamiento completado exitosamente para documento {document_id}")
+            
         except Exception as e:
+            error_msg = f"Error al procesar documento {document_id}: {str(e)}"
+            logger.error(error_msg)
+            logger.error(traceback.format_exc())
+            
             # Marcar como error
-            document = Document.objects.get(id=document_id)
-            document.status = 'error'
-            document.extraction_error = str(e)
-            document.save()
+            if document:
+                document.status = 'error'
+                document.extraction_error = str(e)
+                document.save()
+                logger.info(f"Documento {document_id} marcado como error")
 
 class DataPreviewView(LoginRequiredMixin, TemplateView):
     template_name = 'documents/data_preview.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        doc_id = kwargs['pk']  # Cambiado de 'doc_id' a 'pk'
+        doc_id = kwargs['pk']
         document = get_object_or_404(Document, id=doc_id, user=self.request.user)
         
         # Obtener datos extraídos
@@ -122,7 +153,7 @@ class ProcessDocumentView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        doc_id = kwargs['pk']  # Cambiado de 'doc_id' a 'pk'
+        doc_id = kwargs['pk']
         context['document'] = get_object_or_404(
             Document, id=doc_id, user=self.request.user
         )
@@ -136,21 +167,26 @@ def reprocess_document(request, pk):
     try:
         document = get_object_or_404(Document, id=pk, user=request.user)
         
+        logger.info(f"Reprocessing document {pk}")
+        
         # Reiniciar estado
         document.status = 'processing'
         document.extraction_error = None
+        document.extracted_data_json = None
         document.save()
         
         # Procesar en segundo plano
+        upload_view = DocumentUploadView()
         thread = threading.Thread(
-            target=DocumentUploadView.process_document_background,
-            args=(None, document.id)
+            target=upload_view.process_document_background,
+            args=(document.id,)
         )
         thread.daemon = True
         thread.start()
         
         return JsonResponse({'status': 'success', 'message': 'Reprocesamiento iniciado'})
     except Exception as e:
+        logger.error(f"Error en reprocess_document: {str(e)}")
         return JsonResponse({'status': 'error', 'message': str(e)})
 
 @login_required
@@ -164,4 +200,5 @@ def document_status(request, pk):
             'error': document.extraction_error
         })
     except Exception as e:
+        logger.error(f"Error en document_status: {str(e)}")
         return JsonResponse({'status': 'error', 'message': str(e)})

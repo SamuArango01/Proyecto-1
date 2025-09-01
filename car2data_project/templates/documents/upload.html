@@ -4,7 +4,7 @@
 {% block content %}
 <div class="px-40 flex flex-1 justify-center py-5">
     <div class="layout-content-container flex flex-col w-[512px] max-w-[512px] py-5">
-        <h2 class="text-[#111318] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
+        <h2 class="text-dark-blue tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
             Subir Documento Vehicular
         </h2>
         
@@ -13,34 +13,34 @@
             
             <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label class="flex flex-col min-w-40 flex-1">
-                    <p class="text-[#111318] text-base font-medium leading-normal pb-2">Nombre del Documento</p>
+                    <p class="text-dark-blue text-base font-medium leading-normal pb-2">Nombre del Documento</p>
                     {{ form.name }}
                 </label>
             </div>
             
             <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label class="flex flex-col min-w-40 flex-1">
-                    <p class="text-[#111318] text-base font-medium leading-normal pb-2">Tipo de Documento</p>
+                    <p class="text-dark-blue text-base font-medium leading-normal pb-2">Tipo de Documento</p>
                     {{ form.document_type }}
                 </label>
             </div>
             
             <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label class="flex flex-col min-w-40 flex-1">
-                    <p class="text-[#111318] text-base font-medium leading-normal pb-2">Archivo PDF</p>
+                    <p class="text-dark-blue text-base font-medium leading-normal pb-2">Archivo PDF</p>
                     {{ form.file }}
                 </label>
             </div>
             
             <div class="flex px-4 py-3">
-                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-[#135bec] text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-turquoise text-white text-sm font-bold leading-normal tracking-[0.015em]">
                     <span class="truncate">Subir y Procesar</span>
                 </button>
             </div>
         </form>
         
         <div class="px-4 py-3">
-            <a href="{% url 'documents:dashboard' %}" class="text-[#616f89] text-sm font-normal leading-normal hover:underline">
+            <a href="{% url 'documents:dashboard' %}" class="text-dark-blue text-sm font-normal leading-normal hover:underline">
                 Volver al Dashboard
             </a>
         </div>

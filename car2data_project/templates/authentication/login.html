@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Iniciar Sesión{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen flex items-center justify-center bg-[#f9fafb] py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <!-- Logo y título -->
         <div class="text-center">
-            <div class="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-6">
-                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
+            <div class="mx-auto mb-6">
+                <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-64 w-64 mx-auto">
             </div>
             <h2 class="text-3xl font-bold text-gray-900 mb-2">Bienvenido de vuelta</h2>
             <p class="text-gray-600">Inicia sesión en tu cuenta de Car2Data</p>
@@ -58,7 +57,7 @@
                             </svg>
                         </div>
                         <input id="id_username" name="username" type="text" required
-                               class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition duration-200"
+                               class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise focus:border-turquoise focus:z-10 sm:text-sm transition duration-200"
                                placeholder="Ingresa tu usuario o email">
                     </div>
                 </div>
@@ -75,7 +74,7 @@
                             </svg>
                         </div>
                         <input id="id_password" name="password" type="password" required
-                               class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition duration-200"
+                               class="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise focus:border-turquoise focus:z-10 sm:text-sm transition duration-200"
                                placeholder="Ingresa tu contraseña">
                     </div>
                 </div>
@@ -85,14 +84,14 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <input id="remember_me" name="remember_me" type="checkbox" 
-                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                           class="h-4 w-4 text-turquoise focus:ring-turquoise border-gray-300 rounded">
                     <label for="remember_me" class="ml-2 block text-sm text-gray-900">
                         Recordarme
                     </label>
                 </div>
 
                 <div class="text-sm">
-                    <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition duration-200">
+                    <a href="#" class="font-medium text-turquoise hover:text-dark-blue transition duration-200">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>
@@ -101,9 +100,9 @@
             <!-- Botón de inicio de sesión -->
             <div>
                 <button type="submit" 
-                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-dark-blue to-turquoise hover:from-dark-blue hover:to-turquoise focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-turquoise transform transition duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
                     <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <svg class="h-5 w-5 text-blue-300 group-hover:text-blue-200 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5 text-turquoise group-hover:text-dark-blue transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                         </svg>
                     </span>
@@ -116,7 +115,7 @@
         <div class="text-center">
             <p class="text-sm text-gray-600">
                 ¿No tienes una cuenta? 
-                <a href="{% url 'authentication:register' %}" class="font-medium text-blue-600 hover:text-blue-500 transition duration-200">
+                <a href="{% url 'authentication:register' %}" class="font-medium text-turquoise hover:text-dark-blue transition duration-200">
                     Regístrate aquí
                 </a>
             </p>

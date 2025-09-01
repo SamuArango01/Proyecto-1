@@ -4,11 +4,7 @@ import json
 
 class Document(models.Model):
     DOCUMENT_TYPES = [
-        ('registration', 'Registro Vehicular'),
-        ('insurance', 'Seguro'),
-        ('inspection', 'Inspección'),
         ('ownership', 'Tarjeta de Propiedad'),
-        ('unknown', 'No identificado'),
     ]
     
     STATUS_CHOICES = [
