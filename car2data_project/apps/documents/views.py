@@ -78,47 +78,56 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
             
             logger.info("Conexión con Gemini establecida correctamente")
             
-            # Extraer información usando Gemini
-            extracted_data = extractor.extract_vehicle_info(pdf_path)
-            
-            logger.info(f"Datos extraídos: {extracted_data}")
-            
-            # Guardar los datos extraídos
-            document.set_extracted_data(extracted_data)
-            
-            # Actualizar el tipo de documento si se identificó
-            if extracted_data.get('tipo_documento') and extracted_data.get('tipo_documento') != 'No identificado':
-                doc_type = extracted_data.get('tipo_documento', '').lower()
-                doc_type_mapping = {
-                    'matrícula': 'registration',
-                    'matricula': 'registration',
-                    'registro': 'registration',
-                    'propiedad': 'ownership',
-                    'tarjeta': 'ownership'
-                }
+            # Extraer información usando Gemini con timeout
+            try:
+                extracted_data = extractor.extract_vehicle_info(pdf_path)
+                logger.info(f"Datos extraídos: {extracted_data}")
                 
-                for key, value in doc_type_mapping.items():
-                    if key in doc_type:
-                        document.document_type = value
-                        logger.info(f"Tipo de documento actualizado a: {value}")
-                        break
+                # Guardar los datos extraídos
+                document.set_extracted_data(extracted_data)
+                
+                # Actualizar el tipo de documento si se identificó
+                if extracted_data.get('tipo_documento') and extracted_data.get('tipo_documento') != 'No identificado':
+                    doc_type = extracted_data.get('tipo_documento', '').lower()
+                    doc_type_mapping = {
+                        'matrícula': 'registration',
+                        'matricula': 'registration',
+                        'registro': 'registration',
+                        'propiedad': 'ownership',
+                        'tarjeta': 'ownership'
+                    }
+                    
+                    for key, value in doc_type_mapping.items():
+                        if key in doc_type:
+                            document.document_type = value
+                            break
+                
+                document.status = 'completed'
+                document.processed_at = timezone.now()
+                document.error_message = ''
+                logger.info(f"Documento procesado exitosamente: {document.name}")
+                
+            except Exception as e:
+                logger.error(f"Error durante la extracción de datos: {str(e)}")
+                logger.error(traceback.format_exc())
+                document.status = 'error'
+                document.error_message = f"Error al extraer datos: {str(e)}"
             
-            # Marcar como completado
-            document.status = 'completed'
-            document.processed_at = timezone.now()
             document.save()
             
-            logger.info(f"Procesamiento completado exitosamente para documento {document_id}")
-            
-        except Exception as e:
-            error_msg = f"Error al procesar documento {document_id}: {str(e)}"
-            logger.error(error_msg)
-            logger.error(traceback.format_exc())
-            
-            # Marcar como error
+        except FileNotFoundError as e:
+            logger.error(f"Error de archivo no encontrado: {str(e)}")
             if document:
                 document.status = 'error'
-                document.extraction_error = str(e)
+                document.error_message = f"Archivo no encontrado: {str(e)}"
+                document.save()
+        except Exception as e:
+            logger.error(f"Error al procesar documento: {str(e)}")
+            logger.error(traceback.format_exc())
+            
+            if document:
+                document.status = 'error'
+                document.error_message = f"Error inesperado: {str(e)}"
                 document.save()
                 logger.info(f"Documento {document_id} marcado como error")
 

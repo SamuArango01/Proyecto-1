@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Documentos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Historial de Documentos Generados</h1>
+    
+    {% if generated_forms %}
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Documento</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creación</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for form in generated_forms %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ form.get_form_type_display }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if form.document.vehiculo_set.exists %}
+                                {{ form.document.vehiculo_set.first.placa }} - {{ form.document.vehiculo_set.first.marca }} {{ form.document.vehiculo_set.first.linea }}
+                            {% else %}
+                                No especificado
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ form.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'forms_generation:download' form.id %}" class="text-blue-600 hover:text-blue-900 mr-4">
+                                <i class="fas fa-download"></i> Descargar
+                            </a>
+                            <a href="#" class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% if is_paginated %}
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-700">
+                Mostrando <span class="font-medium">{{ page_obj.start_index }}</span> a 
+                <span class="font-medium">{{ page_obj.end_index }}</span> de 
+                <span class="font-medium">{{ page_obj.paginator.count }}</span> resultados
+            </div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-4 py-2 border rounded-md text-sm font-medium">
+                        &laquo; Primera
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border rounded-md text-sm font-medium">
+                        Anterior
+                    </a>
+                {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border rounded-md text-sm font-medium">
+                        Siguiente
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 border rounded-md text-sm font-medium">
+                        Última &raquo;
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-file-alt text-5xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500 text-lg">No hay documentos generados recientemente.</p>
+            <a href="{% url 'documents:upload' %}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i> Subir nuevo documento
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

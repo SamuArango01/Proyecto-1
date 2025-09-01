@@ -2,59 +2,266 @@
 {% block title %}Selección de Formulario{% endblock %}
 
 {% block content %}
-<div class="px-40 flex flex-1 justify-center py-5">
-    <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-        <div class="flex flex-wrap justify-between gap-3 p-4">
-            <p class="text-dark-blue tracking-light text-[32px] font-bold leading-tight min-w-72">
-                Seleccionar Formulario y Auto-completar
-            </p>
-        </div>
-        
-        <form method="post" action="{% url 'forms_generation:generate' %}">
-            {% csrf_token %}
-            {% if document %}
-                <input type="hidden" name="document_id" value="{{ document.id }}">
-            {% endif %}
-            
-            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                <label class="flex flex-col min-w-40 flex-1">
-                    <select name="form_type" required
-                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-dark-blue focus:outline-0 focus:ring-0 border border-dark-blue bg-white focus:border-dark-blue h-14 placeholder:text-dark-blue p-[15px] text-base font-normal leading-normal">
-                        <option value="">Seleccionar Formulario</option>
-                        <option value="contrato_mandato">Contrato de Mandato</option>
-                        <option value="contrato_compraventa">Contrato de Compraventa</option>
-                        <option value="formulario_tramite">Formulario de Trámite</option>
-                    </select>
-                </label>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-dark-blue mb-2">Generar Documento Autodiligenciado</h1>
+                <p class="text-gray-600">
+                    Selecciona el tipo de documento que deseas generar usando los datos extraídos automáticamente
+                </p>
             </div>
-            
-            <h2 class="text-dark-blue text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-                Vista Previa del Formulario Auto-completado
-            </h2>
-            
-            <div class="p-4">
-                <div class="flex flex-col items-stretch justify-start rounded-lg">
-                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg bg-gray-200 flex items-center justify-center">
-                        <div class="text-center">
-                            <p class="text-dark-blue text-lg font-bold leading-tight tracking-[-0.015em]">
-                                Formulario de Registro Vehicular
-                            </p>
-                            <div class="flex items-end gap-3 justify-center mt-4">
-                                <p class="text-dark-blue text-base font-normal leading-normal">
-                                    Vista previa del formulario de registro vehicular auto-completado. Revisa todos los campos para verificar su precisión antes de enviar.
-                                </p>
-                            </div>
+            {% if document %}
+            <div class="text-right">
+                <span class="text-sm text-gray-500">Documento fuente:</span>
+                <p class="font-medium text-dark-blue">{{ document.name }}</p>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                    {% if document.status == 'completed' %}bg-turquoise text-dark-blue
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ document.get_status_display }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not document %}
+    <!-- Sin documento seleccionado -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-dark-blue mb-2">No hay documento seleccionado</h3>
+        <p class="text-gray-600 mb-6">Primero debe procesar un documento para poder generar formularios.</p>
+        <a href="{% url 'documents:dashboard' %}" class="btn-primary">
+            Ir al Dashboard
+        </a>
+    </div>
+    {% elif document.status != 'completed' %}
+    <!-- Documento no procesado -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">Documento en procesamiento</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>Este documento aún no ha sido procesado completamente. Por favor espera a que termine el procesamiento para generar formularios.</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'documents:data_preview' document.id %}" class="text-yellow-800 font-medium hover:text-yellow-900">
+                        Ver estado del procesamiento →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Selección de tipo de documento -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Panel de selección -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-xl font-bold text-dark-blue mb-4">Seleccionar Tipo de Documento</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Contrato de Mandato -->
+                    <div class="relative">
+                        <input type="radio" name="form_type" id="contrato_mandato" value="contrato_mandato" 
+                               class="sr-only peer" onchange="selectFormType(this.value)">
+                        <label for="contrato_mandato" 
+                               class="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 peer-checked:border-turquoise peer-checked:bg-turquoise peer-checked:bg-opacity-10 transition-all duration-200">
+                            <svg class="h-10 w-10 text-gray-400 peer-checked:text-turquoise mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900 peer-checked:text-dark-blue">Contrato de Mandato</h3>
+                            <p class="text-sm text-gray-500 text-center mt-1">Autorización para realizar trámites vehiculares</p>
+                        </label>
+                    </div>
+
+                    <!-- Contrato de Compraventa -->
+                    <div class="relative">
+                        <input type="radio" name="form_type" id="contrato_compraventa" value="contrato_compraventa" 
+                               class="sr-only peer" onchange="selectFormType(this.value)">
+                        <label for="contrato_compraventa" 
+                               class="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 peer-checked:border-turquoise peer-checked:bg-turquoise peer-checked:bg-opacity-10 transition-all duration-200">
+                            <svg class="h-10 w-10 text-gray-400 peer-checked:text-turquoise mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900 peer-checked:text-dark-blue">Contrato de Compraventa</h3>
+                            <p class="text-sm text-gray-500 text-center mt-1">Documento de venta de vehículo</p>
+                        </label>
+                    </div>
+
+                    <!-- Formulario de Trámite -->
+                    <div class="relative">
+                        <input type="radio" name="form_type" id="formulario_tramite" value="formulario_tramite" 
+                               class="sr-only peer" onchange="selectFormType(this.value)">
+                        <label for="formulario_tramite" 
+                               class="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 peer-checked:border-turquoise peer-checked:bg-turquoise peer-checked:bg-opacity-10 transition-all duration-200">
+                            <svg class="h-10 w-10 text-gray-400 peer-checked:text-turquoise mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900 peer-checked:text-dark-blue">Formulario de Trámite</h3>
+                            <p class="text-sm text-gray-500 text-center mt-1">Formulario oficial para trámites</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Descripción del formulario seleccionado -->
+                <div id="form_description" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+                    <div id="description_content"></div>
+                </div>
+
+                <!-- Botón para continuar -->
+                <div class="mt-6 flex justify-end">
+                    <button id="continue_btn" onclick="continueToGeneration()" 
+                            class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                        Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de vista previa de datos -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+                <h3 class="text-lg font-semibold text-dark-blue mb-4">Datos Disponibles</h3>
+                
+                <!-- Información del vehículo -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Vehículo</h4>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Placa:</span>
+                            <span class="font-medium">{{ extracted_data.vehiculo.placa|default:'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Marca:</span>
+                            <span class="font-medium">{{ extracted_data.vehiculo.marca|default:'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Modelo:</span>
+                            <span class="font-medium">{{ extracted_data.vehiculo.modelo|default:'N/A' }}</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Información del propietario -->
+                {% if extracted_data.propietario.nombre %}
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Propietario</h4>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Nombre:</span>
+                            <span class="font-medium">{{ extracted_data.propietario.nombre|truncatechars:20 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Documento:</span>
+                            <span class="font-medium">{{ extracted_data.propietario.identificacion|default:'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Información de registro -->
+                {% if extracted_data.registro.licencia_transito_numero %}
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Registro</h4>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Licencia:</span>
+                            <span class="font-medium">{{ extracted_data.registro.licencia_transito_numero|truncatechars:15 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Organismo:</span>
+                            <span class="font-medium">{{ extracted_data.registro.organismo_transito|truncatechars:15|default:'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="pt-4 border-t">
+                    <p class="text-xs text-gray-500">
+                        ✓ Todos estos datos serán autodiligenciados en el documento que generes
+                    </p>
+                </div>
             </div>
-            
-            <div class="flex px-4 py-3 justify-end">
-                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-turquoise text-white text-sm font-bold leading-normal tracking-[0.015em]">
-                    <span class="truncate">Generar Formulario</span>
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
+    {% endif %}
 </div>
+
+<script>
+let selectedFormType = null;
+
+const formDescriptions = {
+    'contrato_mandato': {
+        title: 'Contrato de Mandato',
+        description: 'Este documento permite autorizar a otra persona para realizar trámites vehiculares en tu nombre. Se autodiligenciará con los datos del vehículo y propietario extraídos, solo necesitarás completar los datos del mandatario.',
+        fields: ['Datos del mandante (autodiligenciados)', 'Datos del mandatario', 'Trámites autorizados', 'Organismo de tránsito']
+    },
+    'contrato_compraventa': {
+        title: 'Contrato de Compraventa',
+        description: 'Documento legal para formalizar la venta de un vehículo. Los datos del vendedor se autodiligencian con la información extraída, solo necesitarás completar los datos del comprador y condiciones de venta.',
+        fields: ['Datos del vendedor (autodiligenciados)', 'Datos del comprador', 'Valor de venta', 'Forma de pago', 'Condiciones']
+    },
+    'formulario_tramite': {
+        title: 'Formulario de Trámite',
+        description: 'Formulario oficial pre-completado con toda la información del vehículo y propietario. Listo para presentar en organismos de tránsito.',
+        fields: ['Información del vehículo (autodiligenciada)', 'Información del propietario (autodiligenciada)', 'Tipo de servicio', 'Fecha de trámite']
+    }
+};
+
+function selectFormType(formType) {
+    selectedFormType = formType;
+    const descriptionDiv = document.getElementById('form_description');
+    const contentDiv = document.getElementById('description_content');
+    const continueBtn = document.getElementById('continue_btn');
+    
+    if (formDescriptions[formType]) {
+        const desc = formDescriptions[formType];
+        contentDiv.innerHTML = `
+            <h4 class="font-semibold text-dark-blue mb-2">${desc.title}</h4>
+            <p class="text-gray-600 mb-3">${desc.description}</p>
+            <div class="mt-3">
+                <h5 class="font-medium text-gray-700 mb-2">Campos que incluye:</h5>
+                <ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+                    ${desc.fields.map(field => `<li>${field}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        descriptionDiv.classList.remove('hidden');
+        continueBtn.disabled = false;
+    } else {
+        descriptionDiv.classList.add('hidden');
+        continueBtn.disabled = true;
+    }
+}
+
+function continueToGeneration() {
+    if (selectedFormType && document.getElementById('document_id_field')) {
+        const documentId = document.getElementById('document_id_field').value;
+        window.location.href = `{% url 'forms_generation:generate' %}?document_id=${documentId}&form_type=${selectedFormType}`;
+    }
+}
+
+// Auto-seleccionar si viene de un parámetro de URL
+const urlParams = new URLSearchParams(window.location.search);
+const preselectedType = urlParams.get('form_type');
+if (preselectedType && formDescriptions[preselectedType]) {
+    document.getElementById(preselectedType).checked = true;
+    selectFormType(preselectedType);
+}
+</script>
+{% if document %}
+    <input type="hidden" id="document_id_field" value="{{ document.id }}">
+{% endif %}
 {% endblock %}

@@ -287,12 +287,12 @@
             <a href="{% url 'documents:dashboard' %}" class="btn-secondary">
                 Cancelar
             </a>
-            <button type="submit" class="btn-primary">
+            <a href="{% url 'forms_generation:forms' %}?document_id={{ document.id }}" class="btn-primary">
                 <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 Confirmar y Continuar
-            </button>
+            </a>
         </div>
     </form>
     {% else %}
@@ -333,13 +333,24 @@ function reprocessDocument() {
 
 // Actualizar estado automáticamente si está procesando
 {% if document.status == 'processing' %}
-setInterval(function() {
+let statusCheckInterval = setInterval(function() {
     fetch('{% url "documents:status" document.pk %}')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al verificar el estado');
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.status !== 'processing') {
+        console.log('Estado actual:', data.status);
+        if (data.status === 'processed' || data.status === 'completed' || data.status === 'error') {
+            clearInterval(statusCheckInterval);
             location.reload();
         }
+    })
+    .catch(error => {
+        console.error('Error al verificar el estado:', error);
+        clearInterval(statusCheckInterval);
     });
 }, 3000);
 {% endif %}

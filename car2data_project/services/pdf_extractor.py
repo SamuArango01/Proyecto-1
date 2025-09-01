@@ -65,7 +65,10 @@ class PDFExtractor:
             },
             "informacion_propietario": {
                 "nombre": "Nombre(s) y apellido(s) de la persona o entidad legal propietaria del vehículo.",
-                "identificacion": "El número de documento de identidad del propietario, como una cédula de ciudadanía (C.C.)."
+                "identificacion": "El número de documento de identidad del propietario, como una cédula de ciudadanía (C.C.).",
+                "direccion": "La dirección de residencia del propietario del vehículo.",
+                "telefono": "El número de teléfono de contacto del propietario del vehículo.",
+                "ciudad": "La ciudad de residencia del propietario del vehículo."
             },
             "detalles_registro": {
                 "licencia_transito_numero": "El número único de la licencia de tránsito del vehículo.",
@@ -153,7 +156,10 @@ class PDFExtractor:
             },
             "informacion_propietario": {
                 "nombre": "No disponible",
-                "identificacion": "No disponible"
+                "identificacion": "No disponible",
+                "direccion": "No disponible",
+                "telefono": "No disponible",
+                "ciudad": "No disponible"
             },
             "detalles_registro": {
                 "licencia_transito_numero": "No disponible",

@@ -91,6 +91,7 @@
 
         <!-- Navbar -->
         <nav class="hidden md:flex space-x-8">
+          <!-- Dashboard -->
           <a href="{% url 'documents:dashboard' %}" class="nav-link flex items-center space-x-1 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
@@ -98,26 +99,22 @@
             </svg>
             <span>Dashboard</span>
           </a>
-
-          <a href="{% url 'documents:history' %}" class="nav-link flex items-center space-x-1 {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+          
+          <!-- Historial de Documentos -->
+          <a href="{% url 'documents:history' %}" class="nav-link flex items-center space-x-1 {% if request.resolver_match.url_name == 'history' and 'documents' in request.resolver_match.namespaces %}
+          active{% endif %}">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
-            <span>Documentos</span>
+            <span>Historial de Documentos</span>
           </a>
-
-          <a href="{% url 'forms_generation:forms' %}" class="nav-link flex items-center space-x-1 {% if request.resolver_match.url_name == 'forms' %}active{% endif %}">
+          
+          <!-- Formularios Generados -->
+          <a href="{% url 'forms_generation:history' %}" class="nav-link flex items-center space-x-1 {% if 'forms_generation' in request.resolver_match.namespaces and request.resolver_match.url_name == 'history' %}active{% endif %}">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <span>Formularios</span>
-          </a>
-
-          <a href="#" class="nav-link flex items-center space-x-1">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Ayuda</span>
           </a>
         </nav>
 

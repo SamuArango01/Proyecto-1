@@ -15,9 +15,15 @@ cryptography>=42.0.0            # Seguridad y cifrado
 # ===========================
 pypdf==4.0.2                    # Reemplazo oficial de PyPDF2
 python-docx==1.1.0              # Documentos Word
-Pillow>=10.0.0  # Versión flexible para mejor compatibilidad
-pdf2image==1.17.0  # Para convertir PDF a imágenes
-pytesseract==0.3.10  # Para OCR                  # Imágenes (versión estable)
+Pillow>=10.0.0                  # Imágenes (versión flexible para mejor compatibilidad)
+pdf2image==1.17.0               # Para convertir PDF a imágenes
+pytesseract==0.3.10             # Para OCR
+
+# ===========================
+# Generación de PDFs
+# ===========================
+reportlab==4.0.7                # Generación de PDFs
+num2words==0.5.12               # Conversión de números a palabras                  # Manipulación de PDFs existentes
 
 # ===========================
 # IA y procesamiento
