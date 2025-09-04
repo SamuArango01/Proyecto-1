@@ -22,9 +22,16 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['recent_documents'] = Document.objects.filter(
-            user=self.request.user
-        ).order_by('-uploaded_at')[:5]
+        user_documents = Document.objects.filter(user=self.request.user)
+        
+        # Documentos recientes (últimos 5)
+        context['recent_documents'] = user_documents.order_by('-uploaded_at')[:5]
+        
+        # Contadores
+        context['total_documents'] = user_documents.count()
+        context['processed_documents'] = user_documents.filter(status='completed').count()
+        context['processing_documents'] = user_documents.filter(status__in=['pending', 'processing']).count()
+        
         return context
 
 class DocumentUploadView(LoginRequiredMixin, CreateView):

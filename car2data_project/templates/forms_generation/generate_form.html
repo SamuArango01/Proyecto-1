@@ -275,19 +275,60 @@
         </div>
 
         {% elif form_type == 'formulario_tramite' %}
+        <!-- Datos del Propietario -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-dark-blue mb-4">Datos del Propietario</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_primer_apellido.label }} *</label>{{ form.propietario_primer_apellido }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_segundo_apellido.label }}</label>{{ form.propietario_segundo_apellido }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_nombres.label }} *</label>{{ form.propietario_nombres }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_documento.label }} *</label>{{ form.propietario_documento }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_direccion.label }} *</label>{{ form.propietario_direccion }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_ciudad.label }} *</label>{{ form.propietario_ciudad }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_telefono.label }} *</label>{{ form.propietario_telefono }}</div>
+            </div>
+        </div>
+
+        <!-- Datos del Comprador -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-dark-blue mb-4">Datos del Comprador (Si aplica)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_primer_apellido.label }}</label>{{ form.comprador_primer_apellido }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_segundo_apellido.label }}</label>{{ form.comprador_segundo_apellido }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_nombres.label }}</label>{{ form.comprador_nombres }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_documento.label }}</label>{{ form.comprador_documento }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_direccion.label }}</label>{{ form.comprador_direccion }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_ciudad.label }}</label>{{ form.comprador_ciudad }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comprador_telefono.label }}</label>{{ form.comprador_telefono }}</div>
+            </div>
+        </div>
+
+        <!-- Datos Adicionales del Vehículo -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-dark-blue mb-4">Datos Adicionales del Vehículo</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.marca.label }} *</label>{{ form.marca }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.linea.label }} *</label>{{ form.linea }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.color.label }} *</label>{{ form.color }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.modelo.label }} *</label>{{ form.modelo }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.cilindrada.label }} *</label>{{ form.cilindrada }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.capacidad.label }} *</label>{{ form.capacidad }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.potencia.label }} *</label>{{ form.potencia }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.carroceria.label }} *</label>{{ form.carroceria }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_motor.label }} *</label>{{ form.numero_motor }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_chasis.label }} *</label>{{ form.numero_chasis }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_serie.label }} *</label>{{ form.numero_serie }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_vin.label }} *</label>{{ form.numero_vin }}</div>
+            </div>
+        </div>
+
         <!-- Detalles del Trámite -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-dark-blue mb-4">Detalles del Trámite</h2>
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Servicio</label>
-                    {{ form.tipo_servicio }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha del Trámite</label>
-                    {{ form.fecha_tramite }}
-                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.tipo_servicio.label }}</label>{{ form.tipo_servicio }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.fecha_tramite.label }}</label>{{ form.fecha_tramite }}</div>
+                <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.observaciones.label }}</label>{{ form.observaciones }}</div>
             </div>
         </div>
         {% endif %}
@@ -312,7 +353,7 @@
                     <span>Vista Previa</span>
                 </button>
                 
-                <button type="submit" class="btn-primary flex items-center space-x-2">
+                <button type="submit" class="btn btn-success flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>

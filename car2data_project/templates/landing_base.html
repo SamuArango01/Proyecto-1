@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car2Data - {% block title %}{% endblock %}</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-blue': '#0e2455',
+            'turquoise': '#12c3d6',
+            'orange': '#f5a623',
+            'white': '#ffffff',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?display=swap&family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900">
+
+  <style>
+    body {
+      font-family: Inter, "Noto Sans", sans-serif;
+    }
+  </style>
+  
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+  {% block content %}{% endblock %}
+  
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

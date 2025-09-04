@@ -1,0 +1,1248 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}Car2Data - Automatiza tus trámites vehiculares{% endblock %}
+
+{% block extra_css %}
+<style>
+        :root {
+            --car2data-dark-blue: #0e2455;
+            --car2data-turquoise: #12c3d6;
+            --car2data-orange: #f5a623;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --blue-100: #dbeafe;
+            --blue-200: #bfdbfe;
+            --blue-900: #1e3a8a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-100);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--car2data-dark-blue);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--car2data-dark-blue);
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--car2data-turquoise);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--white);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            border-radius: 0.75rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--car2data-dark-blue), var(--blue-900), var(--car2data-dark-blue));
+            color: var(--white);
+            padding: 5rem 0;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title .highlight {
+            color: var(--car2data-turquoise);
+            display: block;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--blue-100);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .hero-benefits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .benefit-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+
+        .benefit-icon {
+            color: var(--car2data-orange);
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 24rem;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .decorative-circle-1 {
+            top: -1rem;
+            right: -1rem;
+            width: 5rem;
+            height: 5rem;
+            background: var(--car2data-orange);
+            opacity: 0.2;
+        }
+
+        .decorative-circle-2 {
+            bottom: -1rem;
+            left: -1rem;
+            width: 4rem;
+            height: 4rem;
+            background: var(--car2data-turquoise);
+            opacity: 0.3;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background: var(--gray-50);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--car2data-dark-blue);
+            margin-bottom: 1rem;
+        }
+
+        .section-description {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 4rem;
+            height: 4rem;
+            background: var(--gray-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+
+        .feature-icon.turquoise {
+            color: var(--car2data-turquoise);
+        }
+
+        .feature-icon.orange {
+            color: var(--car2data-orange);
+        }
+
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--car2data-dark-blue);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            padding: 5rem 0;
+            background: var(--white);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .benefits-image {
+            position: relative;
+        }
+
+        .benefits-image img {
+            width: 100%;
+            height: 24rem;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .benefits-content {
+            space-y: 2rem;
+        }
+
+        .benefits-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .stat-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--car2data-turquoise), var(--car2data-orange));
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .stat-content h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--car2data-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--car2data-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 5rem 0;
+            background: linear-gradient(to bottom, var(--gray-50), var(--white));
+        }
+
+        .steps-container {
+            position: relative;
+        }
+
+        .steps-line {
+            position: absolute;
+            top: 4rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gray-200);
+            z-index: 0;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .step-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .step-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-icon {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: var(--white);
+            font-size: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-icon.turquoise {
+            background: var(--car2data-turquoise);
+        }
+
+        .step-icon.orange {
+            background: var(--car2data-orange);
+        }
+
+        .step-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--car2data-dark-blue);
+            margin-bottom: 1rem;
+        }
+
+        .step-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--car2data-dark-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            margin-top: 4rem;
+        }
+
+        .time-highlight {
+            color: var(--car2data-orange);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Call to Action Section */
+        .cta {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--car2data-dark-blue), var(--blue-900));
+            color: var(--white);
+        }
+
+        .cta-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .cta-content {
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .cta-title .highlight {
+            color: var(--car2data-turquoise);
+            display: block;
+        }
+
+        .cta-description {
+            font-size: 1.25rem;
+            color: var(--blue-100);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .cta-benefits {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .cta-benefits li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: var(--blue-100);
+        }
+
+        .check-icon {
+            color: var(--car2data-orange);
+        }
+
+        .cta-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .testimonial {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .testimonial-text {
+            color: var(--blue-100);
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .author-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--car2data-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .author-info h4 {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .author-info p {
+            color: var(--blue-200);
+            font-size: 0.75rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--car2data-dark-blue);
+            color: var(--white);
+            padding: 3rem 0 1.5rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-brand {
+            margin-bottom: 1rem;
+        }
+
+        .footer-description {
+            color: var(--blue-200);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .footer-section h3 {
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--blue-200);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--car2data-turquoise);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--blue-200);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .contact-icon {
+            color: var(--car2data-orange);
+        }
+
+        .footer-copyright {
+            border-top: 1px solid #1e3a8a;
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--blue-200);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .hero-grid,
+            .benefits-grid,
+            .cta-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hero-content,
+            .cta-content {
+                text-align: left;
+            }
+
+            .hero-buttons,
+            .cta-buttons {
+                flex-direction: row;
+                justify-content: flex-start;
+            }
+
+            .hero-benefits {
+                justify-content: flex-start;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .steps-line {
+                display: block;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .hero-title,
+            .cta-title {
+                font-size: 3.75rem;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    /* Animation Classes */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes slideInLeft {
+        from { transform: translateX(-50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-pulse {
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    .animate-slide-left {
+        animation: slideInLeft 1s ease-out forwards;
+    }
+
+    .animate-slide-right {
+        animation: slideInRight 1s ease-out forwards;
+    }
+
+    .delay-100 {
+        animation-delay: 0.1s;
+    }
+
+    .delay-200 {
+        animation-delay: 0.2s;
+    }
+
+    .delay-300 {
+        animation-delay: 0.3s;
+    }
+
+    .hover-scale {
+        transition: transform 0.3s ease;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.03);
+    }
+
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% if not user.is_authenticated %}
+{{ block.super }}
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo flex items-center hover:scale-105 transition-transform duration-300">
+                    <div class="logo-icon mr-3">
+                        <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-12 w-auto drop-shadow-md hover:drop-shadow-xl transition-all duration-300">
+                    </div>
+                    <span class="logo-text font-bold text-2xl bg-gradient-to-r from-dark-blue to-tark-blue bg-clip-text text-transparent">
+                        Car2Data
+                    </span>
+                </div>
+                <a href="{% url 'authentication:login' %}" class="btn btn-primary transform hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl">Iniciar Sesión</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-dark-blue to-turquoise text-white py-20">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-10 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">Automatiza tus trámites vehiculares con IA</h1>
+                <p class="text-xl mb-8 text-gray-100">Simplifica la gestión de tus documentos vehiculares con nuestra plataforma inteligente. Ahorra tiempo y evita filas interminables.</p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{% url 'authentication:login' %}" class="bg-white text-dark-blue hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-center transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        Iniciar Sesión
+                    </a>
+                    <a href="{% url 'authentication:register' %}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-dark-blue font-bold py-3 px-8 rounded-lg text-center transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        Registrarse
+                    </a>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-auto w-full max-w-xl animate-float hover:shadow-3xl transition-all duration-500">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Funcionalidades Principales</h2>
+                <p class="section-description">
+                    Car2Data automatiza completamente el proceso de trámites vehiculares mediante 
+                    tecnología de vanguardia e inteligencia artificial
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon turquoise">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3 class="feature-title">Carga de PDF</h3>
+                    <p class="feature-description">
+                        Sube documentos de propiedad vehicular en formato PDF de manera segura
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="feature-title">IA Inteligente</h3>
+                    <p class="feature-description">
+                        Extracción automática de datos usando reconocimiento óptico y procesamiento de lenguaje natural
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon turquoise">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3 class="feature-title">Edición y Validación</h3>
+                    <p class="feature-description">
+                        Revisa y edita los datos extraídos antes de generar los formularios oficiales
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-file-check"></i>
+                    </div>
+                    <h3 class="feature-title">Formularios Automáticos</h3>
+                    <p class="feature-description">
+                        Genera y completa formularios oficiales automáticamente con los datos extraídos
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon turquoise">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Detección de Errores</h3>
+                    <p class="feature-description">
+                        Identifica y corrige errores comunes antes del envío de documentos
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="feature-title">Historial Completo</h3>
+                    <p class="feature-description">
+                        Accede al historial de documentos procesados y formularios generados
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon turquoise">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 class="feature-title">Base de Datos Estructurada</h3>
+                    <p class="feature-description">
+                        Almacenamiento seguro de registros procesados en base de datos organizada
+                    </p>
+                </div>
+
+                <div class="feature-card card-hover transform transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden bg-white">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="feature-title">Múltiples Procedimientos</h3>
+                    <p class="feature-description">
+                        Soporte para diferentes tipos de formularios según el procedimiento y vehículo
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="container">
+            <div class="benefits-grid">
+                <div class="benefits-image relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-turquoise to-blue-500 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                    <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="w-full h-full object-contain max-h-96">
+                    <div class="decorative-circle" style="top: -1.5rem; left: -1.5rem; width: 6rem; height: 6rem; background: var(--car2data-turquoise); opacity: 0.2;"></div>
+                    <div class="decorative-circle" style="bottom: -1.5rem; right: -1.5rem; width: 8rem; height: 8rem; background: var(--car2data-orange); opacity: 0.2;"></div>
+                </div>
+
+                <div class="benefits-content transform transition duration-500 hover:scale-105">
+                    <div>
+                        <h2 class="section-title" style="text-align: left; margin-bottom: 1rem;">Beneficios que Transforman</h2>
+                        <p class="section-description" style="text-align: left; margin: 0;">
+                            Car2Data revoluciona los procesos administrativos vehiculares, 
+                            ofreciendo resultados medibles y mejoras significativas para ciudadanos y administraciones.
+                        </p>
+                    </div>
+
+                    <div class="benefits-stats">
+                        <div class="stat-item transform transition duration-500 hover:scale-110">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">99%</div>
+                                <h3>99% de Precisión</h3>
+                                <p class="stat-description">
+                                    Reduce errores en formularios gracias a la extracción automática de datos
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item transform transition duration-500 hover:scale-110">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">80%</div>
+                                <h3>Ahorro de Tiempo</h3>
+                                <p class="stat-description">
+                                    Procesa documentos en segundos, no en horas
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item transform transition duration-500 hover:scale-110">
+                            <div class="stat-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">95%</div>
+                                <h3>Eliminación de Errores</h3>
+                                <p class="stat-description">
+                                    Validación automática previene errores comunes de entrada manual
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item transform transition duration-500 hover:scale-110">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">4.9/5</div>
+                                <h3>Satisfacción del Usuario</h3>
+                                <p class="stat-description">
+                                    Mejora significativa en la experiencia del ciudadano
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">¿Cómo Funciona?</h2>
+                <p class="section-description">
+                    En solo 4 pasos simples, transforma tus documentos vehiculares en formularios 
+                    oficiales completados automáticamente
+                </p>
+            </div>
+
+            <div class="steps-container">
+                <div class="steps-line"></div>
+                
+                <div class="steps-grid">
+                    <div class="step-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="step-icon turquoise">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3 class="step-title">1. Carga tu PDF</h3>
+                        <p class="step-description">
+                            Sube el documento de propiedad vehicular desde tu dispositivo de forma segura
+                        </p>
+                    </div>
+
+                    <div class="step-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="step-icon orange">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3 class="step-title">2. IA Procesa</h3>
+                        <p class="step-description">
+                            Nuestra inteligencia artificial extrae automáticamente todos los datos relevantes
+                        </p>
+                    </div>
+
+                    <div class="step-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="step-icon turquoise">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h3 class="step-title">3. Revisa y Edita</h3>
+                        <p class="step-description">
+                            Verifica la información extraída y realiza las correcciones necesarias
+                        </p>
+                    </div>
+
+                    <div class="step-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="step-icon orange">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <h3 class="step-title">4. Descarga Formularios</h3>
+                        <p class="step-description">
+                            Obtén formularios oficiales completados automáticamente y listos para enviar
+                        </p>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="time-badge">
+                        <span class="time-highlight">< 2 min</span>
+                        <span>tiempo promedio de procesamiento</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="bg-gradient-to-r from-dark-blue to-turquoise text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">¿Listo para transformar tu experiencia con trámites vehiculares?</h2>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">Únete a miles de usuarios que ya están ahorrando tiempo y evitando dolores de cabeza con Car2Data</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <a href="{% url 'authentication:register' %}" class="bg-white text-dark-blue hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                    Crear Cuenta Gratis
+                </a>
+                <a href="{% url 'authentication:login' %}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-dark-blue font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                    Iniciar Sesión
+                </a>
+            </div>
+
+            <!-- Testimonial Section -->
+            <div class="max-w-4xl mx-auto bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-3/4 text-left mb-6 md:mb-0 md:pr-6">
+                        <p class="text-lg italic mb-4">"Car2Data ha revolucionado cómo manejamos los trámites en nuestra empresa. Lo que antes tomaba días ahora se resuelve en minutos."</p>
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">AM</div>
+                            <div>
+                                <p class="font-semibold">Ana Martínez</p>
+                                <p class="text-sm text-gray-200">Gerente de Operaciones</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-1/4 grid grid-cols-3 gap-2">
+                        <div class="bg-white/20 p-3 rounded-lg text-center">
+                            <div class="text-2xl font-bold">99%</div>
+                            <div class="text-sm">Precisión</div>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg text-center">
+                            <div class="text-2xl font-bold">80%</div>
+                            <div class="text-sm">Ahorro</div>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-lg text-center">
+                            <div class="text-2xl font-bold">4.9/5</div>
+                            <div class="text-sm">Rating</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="bg-white text-dark-blue rounded-lg p-2 mr-3">
+                            <i class="fas fa-car text-2xl"></i>
+                        </div>
+                        <span class="text-2xl font-bold">Car2Data</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">La solución todo en uno para la gestión inteligente de trámites vehiculares mediante IA avanzada.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Inicio</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition">Características</a></li>
+                        <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition">¿Cómo funciona?</a></li>
+                        <li><a href="#pricing" class="text-gray-400 hover:text-white transition">Precios</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Términos de Servicio</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Política de Privacidad</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Cookies</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Seguridad</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope text-turquoise mt-1 mr-3"></i>
+                            <span class="text-gray-400">info@car2data.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone text-turquoise mr-3"></i>
+                            <span class="text-gray-400">+1 234 567 890</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-turquoise mt-1 mr-3"></i>
+                            <span class="text-gray-400">Ciudad, País</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-500 text-sm mb-4 md:mb-0"> 2023 Car2Data. Todos los derechos reservados.</p>
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-500 hover:text-white text-sm transition">Términos</a>
+                        <a href="#" class="text-gray-500 hover:text-white text-sm transition">Privacidad</a>
+                        <a href="#" class="text-gray-500 hover:text-white text-sm transition">Cookies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="fixed bottom-8 right-8 bg-turquoise text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-dark-blue transition-all duration-300 opacity-0 invisible">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Back to Top Button
+    const backToTopButton = document.getElementById('backToTop');
+    
+    if (backToTopButton) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.remove('opacity-100', 'visible');
+                backToTopButton.classList.add('opacity-0', 'invisible');
+            }
+        });
+    }
+
+    // Simple scroll animation
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all feature cards and step cards
+    document.querySelectorAll('.feature-card, .step-card, .stat-item').forEach(el => {
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        }
+    });
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            const target = document.querySelector(targetId);
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

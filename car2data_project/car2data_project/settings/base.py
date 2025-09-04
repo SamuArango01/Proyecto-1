@@ -37,7 +37,7 @@ LOCAL_APPS = [
     'apps.documents',
     'apps.vehicles',
     'apps.forms_generation',
-    'apps.administration',
+    'apps.administration.apps.AdministrationConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

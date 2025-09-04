@@ -239,17 +239,53 @@ class ContratoCompraventaForm(forms.ModelForm):
         }
 
 class FormularioTramiteForm(forms.ModelForm):
+    # Datos del Propietario
+    propietario_primer_apellido = forms.CharField(max_length=50, label="Primer Apellido del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Primer Apellido'}))
+    propietario_segundo_apellido = forms.CharField(max_length=50, label="Segundo Apellido del Propietario", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Segundo Apellido'}))
+    propietario_nombres = forms.CharField(max_length=100, label="Nombres del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Nombres'}))
+    propietario_documento = forms.CharField(max_length=20, label="Documento del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Número de documento'}))
+    propietario_direccion = forms.CharField(max_length=100, label="Dirección del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Dirección'}))
+    propietario_ciudad = forms.CharField(max_length=50, label="Ciudad del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Ciudad'}))
+    propietario_telefono = forms.CharField(max_length=20, label="Teléfono del Propietario", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Teléfono'}))
+
+    # Datos del Comprador
+    comprador_primer_apellido = forms.CharField(max_length=50, label="Primer Apellido del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Primer Apellido'}))
+    comprador_segundo_apellido = forms.CharField(max_length=50, label="Segundo Apellido del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Segundo Apellido'}))
+    comprador_nombres = forms.CharField(max_length=100, label="Nombres del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Nombres'}))
+    comprador_documento = forms.CharField(max_length=20, label="Documento del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Número de documento'}))
+    comprador_direccion = forms.CharField(max_length=100, label="Dirección del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Dirección'}))
+    comprador_ciudad = forms.CharField(max_length=50, label="Ciudad del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Ciudad'}))
+    comprador_telefono = forms.CharField(max_length=20, label="Teléfono del Comprador", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'placeholder': 'Teléfono'}))
+
+    # Datos del Vehículo
+    marca = forms.CharField(max_length=50, label="Marca", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    linea = forms.CharField(max_length=50, label="Línea", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    color = forms.CharField(max_length=50, label="Color", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    modelo = forms.CharField(max_length=4, label="Modelo", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    cilindrada = forms.CharField(max_length=10, label="Cilindrada", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    capacidad = forms.CharField(max_length=10, label="Capacidad", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    potencia = forms.CharField(max_length=10, label="Potencia", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    carroceria = forms.CharField(max_length=50, label="Carrocería", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    numero_motor = forms.CharField(max_length=50, label="Número de Motor", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    numero_chasis = forms.CharField(max_length=50, label="Número de Chasis", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    numero_serie = forms.CharField(max_length=50, label="Número de Serie", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    numero_vin = forms.CharField(max_length=50, label="Número VIN", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    observaciones = forms.CharField(widget=forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'rows': 3}), required=False, label="Observaciones")
+
     class Meta:
         model = FormularioTramite
-        fields = ['tipo_servicio', 'fecha_tramite']
+        fields = [
+            'propietario_primer_apellido', 'propietario_segundo_apellido', 'propietario_nombres', 'propietario_documento',
+            'propietario_direccion', 'propietario_ciudad', 'propietario_telefono',
+            'comprador_primer_apellido', 'comprador_segundo_apellido', 'comprador_nombres', 'comprador_documento',
+            'comprador_direccion', 'comprador_ciudad', 'comprador_telefono',
+            'marca', 'linea', 'color', 'modelo', 'cilindrada', 'capacidad', 'potencia', 'carroceria',
+            'numero_motor', 'numero_chasis', 'numero_serie', 'numero_vin',
+            'tipo_servicio', 'fecha_tramite', 'observaciones'
+        ]
         widgets = {
-            'tipo_servicio': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-turquoise'
-            }),
-            'fecha_tramite': forms.DateInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-turquoise',
-                'type': 'date'
-            }),
+            'tipo_servicio': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}),
+            'fecha_tramite': forms.DateInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'type': 'date'}),
         }
 
 class DocumentSelectionForm(forms.Form):

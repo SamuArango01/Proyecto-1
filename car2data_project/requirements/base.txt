@@ -14,6 +14,7 @@ cryptography>=42.0.0            # Seguridad y cifrado
 # Procesamiento de archivos
 # ===========================
 pypdf==4.0.2                    # Reemplazo oficial de PyPDF2
+PyPDF2==3.0.1                   # Para relleno de formularios PDF (versión compatible)
 python-docx==1.1.0              # Documentos Word
 Pillow>=10.0.0                  # Imágenes (versión flexible para mejor compatibilidad)
 pdf2image==1.17.0               # Para convertir PDF a imágenes

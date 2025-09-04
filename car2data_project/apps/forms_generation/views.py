@@ -3,6 +3,8 @@
 import os
 from datetime import datetime
 from datetime import timedelta
+import logging
+import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, FormView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -69,36 +71,87 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
             context['vehiculo'] = vehiculo
             context['propietario'] = propietario
             
-            # Inicializar formulario según el tipo
+            # Inicializar formulario según el tipo y pre-llenar con datos extraídos
+            initial_data = {}
+            extracted_propietario = context['extracted_data'].get('propietario', {})
+            extracted_vehiculo = context['extracted_data'].get('vehiculo', {})
+
             if form_type == 'contrato_mandato':
-                form = ContratoMandatoForm()
-                # Pre-llenar datos del mandante con el propietario
-                if propietario:
-                    form.initial.update({
-                        'mandante_nombre': propietario.nombre,
-                        'mandante_documento': propietario.numero_documento,
-                        'mandante_direccion': propietario.direccion,
-                        'mandante_telefono': propietario.telefono,
-                        'mandante_ciudad': propietario.ciudad,
-                    })
-                context['form'] = form
+                initial_data = {
+                    'placa': extracted_vehiculo.get('placa'),
+                    'mandante_nombre': extracted_propietario.get('nombre'),
+                    'mandante_documento': extracted_propietario.get('documento'),
+                    'mandante_direccion': extracted_propietario.get('direccion'),
+                    'mandante_telefono': extracted_propietario.get('telefono'),
+                    'mandante_ciudad': extracted_propietario.get('ciudad'),
+                }
+                context['form'] = ContratoMandatoForm(initial=initial_data)
                 
             elif form_type == 'contrato_compraventa':
-                form = ContratoCompraventaForm()
-                # Pre-llenar datos del vendedor con el propietario
-                if propietario:
-                    form.initial.update({
-                        'vendedor_nombre': propietario.nombre,
-                        'vendedor_documento': propietario.numero_documento,
-                        'vendedor_direccion': propietario.direccion,
-                        'vendedor_telefono': propietario.telefono,
-                        'vendedor_ciudad': propietario.ciudad,
-                    })
-                context['form'] = form
+                initial_data = {
+                    'vendedor_nombre': extracted_propietario.get('nombre'),
+                    'vendedor_documento': extracted_propietario.get('documento'),
+                    'vendedor_direccion': extracted_propietario.get('direccion'),
+                    'vendedor_telefono': extracted_propietario.get('telefono'),
+                    'vendedor_ciudad': extracted_propietario.get('ciudad'),
+                }
+                context['form'] = ContratoCompraventaForm(initial=initial_data)
                 
             elif form_type == 'formulario_tramite':
-                form = FormularioTramiteForm()
-                context['form'] = form
+                extracted_propietario = context['extracted_data'].get('propietario', {})
+
+                # Helper para separar nombre completo en apellidos y nombres
+                def split_apellidos_nombres(fullname: str):
+                    try:
+                        if not fullname:
+                            return '', '', ''
+                        parts = str(fullname).strip().split()
+                        if len(parts) >= 3:
+                            return parts[0], parts[1], ' '.join(parts[2:])
+                        if len(parts) == 2:
+                            return parts[0], '', parts[1]
+                        return parts[0], '', ''
+                    except Exception:
+                        return '', '', ''
+
+                ap1, ap2, nombres = split_apellidos_nombres(extracted_propietario.get('nombre'))
+
+                # Mapeo usando claves de Document.get_structured_data()
+                initial_data = {
+                    'placa': extracted_vehiculo.get('placa'),
+                    # Datos del Propietario (separados automáticamente)
+                    'propietario_primer_apellido': ap1,
+                    'propietario_segundo_apellido': ap2,
+                    'propietario_nombres': nombres,
+                    'propietario_documento': extracted_propietario.get('identificacion'),
+
+                    # Datos del Vehículo
+                    'marca': extracted_vehiculo.get('marca'),
+                    'linea': extracted_vehiculo.get('linea'),
+                    'color': extracted_vehiculo.get('color'),
+                    'modelo': extracted_vehiculo.get('modelo'),
+                    'cilindrada': extracted_vehiculo.get('cilindrada_cc'),
+                    'capacidad': extracted_vehiculo.get('capacidad_kg_psj'),
+                    'potencia': extracted_vehiculo.get('potencia_hp'),
+                    'carroceria': extracted_vehiculo.get('tipo_carroceria'),
+                    'numero_motor': extracted_vehiculo.get('numero_motor'),
+                    'numero_chasis': extracted_vehiculo.get('numero_chasis'),
+                    'numero_serie': extracted_vehiculo.get('numero_serie'),
+                    'numero_vin': extracted_vehiculo.get('vin'),
+                    'tipo_servicio': extracted_vehiculo.get('servicio'),
+                    'clase_vehiculo': extracted_vehiculo.get('clase_vehiculo'),
+                    'combustible': extracted_vehiculo.get('combustible'),
+                }
+                
+                # Filtrar claves con valores None o vacíos para no enviar 'None' o '' al formulario
+                initial_data_filtered = {k: v for k, v in initial_data.items() if v is not None and v != ''}
+
+                # Logging a nivel INFO para que aparezca (y tolerante a fechas)
+                logging.info(f"Extracted Data: {json.dumps(context['extracted_data'], indent=2, ensure_ascii=False, default=str)}")
+                logging.info(f"Initial Data Mapped: {json.dumps(initial_data, indent=2, ensure_ascii=False, default=str)}")
+                logging.info(f"Initial Data Filtered: {json.dumps(initial_data_filtered, indent=2, ensure_ascii=False, default=str)}")
+
+                context['form'] = FormularioTramiteForm(initial=initial_data_filtered)
                 
         except Document.DoesNotExist:
             messages.error(self.request, 'Documento no encontrado.')
@@ -167,8 +220,8 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 contrato.id_mandatario = mandatario
                 contrato.save()
                 
-                # Generar PDF
-                success = self._generate_pdf_document(document, 'contrato_mandato', {
+                # Incluir todos los datos del formulario en el PDF
+                pdf_data = {
                     'mandante': {
                         'nombre': mandante.nombre,
                         'documento': mandante.numero_documento,
@@ -183,8 +236,18 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                         'telefono': mandatario.telefono,
                         'ciudad': mandatario.ciudad
                     },
-                    'contrato_id': contrato.id_contrato
-                })
+                    'vehiculo': {
+                        'placa': vehiculo.placa if vehiculo else ''
+                    },
+                    'contrato_id': contrato.id_contrato,
+                    'tramites_autorizados': form.cleaned_data.get('tramites_autorizados', ''),
+                    'organismo_transito': form.cleaned_data.get('organismo_transito', ''),
+                    'ciudad_contrato': form.cleaned_data.get('ciudad_contrato', ''),
+                    'fecha_contrato': form.cleaned_data.get('fecha_contrato')
+                }
+                
+                # Generar PDF con todos los datos
+                success = self._generate_pdf_document(document, 'contrato_mandato', pdf_data)
                 
                 if success:
                     messages.success(request, 'Contrato de mandato generado exitosamente.')
@@ -196,6 +259,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 logger.error(f"Error procesando contrato de mandato: {str(e)}")
                 messages.error(request, 'Error al procesar el contrato.')
         else:
+            logger.error(f"Errores en el contrato de mandato: {form.errors.as_json()}")
             messages.error(request, 'Formulario con errores. Revisa los datos.')
         
         # Si hay errores, volver a mostrar el formulario
@@ -263,21 +327,25 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'telefono': form.cleaned_data.get('vendedor_telefono', 'No especificado'),
                     'ciudad': form.cleaned_data.get('vendedor_ciudad', 'No especificada')
                 }
+
+                comprador_info = {
+                    'nombre': form.cleaned_data['comprador_nombre'],
+                    'documento': form.cleaned_data['comprador_documento'],
+                    'direccion': form.cleaned_data.get('comprador_direccion', 'No especificada'),
+                    'telefono': form.cleaned_data.get('comprador_telefono', 'No especificado'),
+                    'ciudad': form.cleaned_data.get('comprador_ciudad', 'No especificada')
+                }
                 
                 # Debug: Mostrar los datos que se están usando
                 logger.info(f"Datos del vendedor para el PDF: {vendedor_info}")
+                logger.info(f"Datos del comprador para el PDF: {comprador_info}")
                 
                 # Generar PDF
                 success = self._generate_pdf_document(document, 'contrato_compraventa', {
                     'vendedor': vendedor_info,
-                    'comprador': {
-                        'nombre': comprador.nombre,
-                        'documento': comprador.numero_documento,
-                        'direccion': comprador.direccion if comprador.direccion else 'No especificada',
-                        'telefono': comprador.telefono if comprador.telefono else 'No especificado',
-                        'ciudad': comprador.ciudad if comprador.ciudad else 'No especificada'
-                    },
+                    'comprador': comprador_info,
                     'valor_venta': contrato.valor_venta,
+                    'forma_pago': form.cleaned_data.get('forma_pago', ''),
                     'contrato_id': contrato.id_contrato
                 })
                 
@@ -291,6 +359,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 logger.error(f"Error procesando contrato de compraventa: {str(e)}")
                 messages.error(request, 'Error al procesar el contrato.')
         else:
+            logger.error(f"Errores en el contrato de compraventa: {form.errors.as_json()}")
             messages.error(request, 'Formulario con errores. Revisa los datos.')
         
         # Si hay errores, volver a mostrar el formulario
@@ -304,30 +373,97 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
     def _process_formulario_tramite(self, request, document):
         """Procesa la generación del formulario de trámite"""
         form = FormularioTramiteForm(request.POST)
-        
+
         if form.is_valid():
             try:
-                # Obtener o crear vehículo y propietario
+                # 1. Cargar datos extraídos originalmente como base
+                extracted_data = document.get_structured_data()
+                extracted_vehiculo = extracted_data.get('vehiculo', {})
+                extracted_propietario = extracted_data.get('propietario', {})
+
+                # Helper para separar nombre completo en apellidos y nombres
+                def split_apellidos_nombres(fullname: str):
+                    try:
+                        if not fullname:
+                            return '', '', ''
+                        parts = str(fullname).strip().split()
+                        if len(parts) >= 3:
+                            return parts[0], parts[1], ' '.join(parts[2:])
+                        if len(parts) == 2:
+                            return parts[0], '', parts[1]
+                        return parts[0], '', ''
+                    except Exception:
+                        return '', '', ''
+
+                ap1, ap2, nombres = split_apellidos_nombres(extracted_propietario.get('nombre'))
+
+                base_data = {
+                    'placa': extracted_vehiculo.get('placa'),
+                    'marca': extracted_vehiculo.get('marca'),
+                    'linea': extracted_vehiculo.get('linea'),
+                    'color': extracted_vehiculo.get('color'),
+                    'modelo': extracted_vehiculo.get('modelo'),
+                    'cilindrada': extracted_vehiculo.get('cilindrada_cc'),
+                    'capacidad': extracted_vehiculo.get('capacidad_kg_psj'),
+                    'potencia': extracted_vehiculo.get('potencia_hp'),
+                    'carroceria': extracted_vehiculo.get('tipo_carroceria'),
+                    'numero_motor': extracted_vehiculo.get('numero_motor'),
+                    'numero_chasis': extracted_vehiculo.get('numero_chasis'),
+                    'numero_serie': extracted_vehiculo.get('numero_serie'),
+                    'numero_vin': extracted_vehiculo.get('vin'),
+                    'tipo_servicio': extracted_vehiculo.get('servicio'),
+                    'clase_vehiculo': extracted_vehiculo.get('clase_vehiculo'),
+                    'combustible': extracted_vehiculo.get('combustible'),
+                    # Propietario (separado automáticamente)
+                    'propietario_primer_apellido': ap1,
+                    'propietario_segundo_apellido': ap2,
+                    'propietario_nombres': nombres,
+                    'propietario_documento': extracted_propietario.get('identificacion'),
+                }
+
+                # 2. Combinar con datos del formulario (los datos del form tienen prioridad)
+                # Se filtran los valores None de cleaned_data para no sobreescribir datos existentes con "nada"
+                form_data = {k: v for k, v in form.cleaned_data.items() if v is not None and v != ''}
+                final_data = base_data.copy()
+                final_data.update(form_data)
+
+                # Log de verificación de datos combinados
+                logger.info(f"Formulario Tramite - Datos combinados para guardar/generar: {json.dumps(final_data, indent=2, ensure_ascii=False, default=str)}")
+
+                # 3. Actualizar o crear Vehiculo y Persona con los datos combinados
                 vehiculo = document.get_or_create_vehiculo()
-                propietario = document.get_or_create_persona()
-                
-                # Crear el formulario de trámite
+                for field, value in final_data.items():
+                    if hasattr(vehiculo, field):
+                        setattr(vehiculo, field, value)
+                vehiculo.save()
+
+                propietario_nombre_completo = f"{final_data.get('propietario_primer_apellido', '')} {final_data.get('propietario_segundo_apellido', '')} {final_data.get('propietario_nombres', '')}".strip()
+                propietario, created = Persona.objects.get_or_create(
+                    numero_documento=final_data['propietario_documento'],
+                    defaults={'nombre': propietario_nombre_completo}
+                )
+                propietario.nombre = propietario_nombre_completo
+                propietario.direccion = final_data.get('propietario_direccion')
+                propietario.ciudad = final_data.get('propietario_ciudad')
+                propietario.telefono = final_data.get('propietario_telefono')
+                propietario.save()
+
+                # 4. Crear el formulario de trámite en la BD
                 formulario = form.save(commit=False)
                 formulario.id_vehiculo = vehiculo
                 formulario.id_propietario = propietario
+                # Actualizar el modelo del formulario con los datos combinados
+                for field, value in final_data.items():
+                    if hasattr(formulario, field):
+                        setattr(formulario, field, value)
                 formulario.save()
-                
-                # Generar PDF
-                success = self._generate_pdf_document(document, 'formulario_tramite', {
-                    'formulario_id': formulario.id_formulario,
-                    'propietario': {
-                        'nombre': propietario.nombre,
-                        'documento': propietario.numero_documento,
-                        'direccion': propietario.direccion,
-                        'telefono': propietario.telefono,
-                        'ciudad': propietario.ciudad,
-                    }
-                })
+
+                # 5. Preparar datos para el PDF y generar
+                pdf_data = final_data.copy()
+                pdf_data['placa'] = vehiculo.placa  # Añadir la placa que no está en el form
+
+                success = self._generate_pdf_document(document, 'formulario_tramite', pdf_data)
+
                 
                 if success:
                     messages.success(request, 'Formulario de trámite generado exitosamente.')
@@ -339,6 +475,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 logger.error(f"Error procesando formulario de trámite: {str(e)}")
                 messages.error(request, 'Error al procesar el formulario.')
         else:
+            logger.error(f"Errores en el formulario de trámite: {form.errors.as_json()}")
             messages.error(request, 'Formulario con errores. Revisa los datos.')
         
         # Si hay errores, volver a mostrar el formulario
@@ -368,8 +505,13 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
             logger.info(f"Datos extraídos del documento: {extracted_data}")
             
             if form_type == 'contrato_mandato':
+                # Combinar los datos extraídos con los datos adicionales del formulario
+                # Los datos adicionales tienen prioridad sobre los extraídos
+                form_data = extracted_data.copy()
+                form_data.update(additional_data)
+                
                 success = generator.generate_contrato_mandato(
-                    extracted_data,  # Pasar todo el diccionario de datos extraídos
+                    form_data,  # Pasar todos los datos combinados
                     additional_data.get('mandante', {}),
                     additional_data.get('mandatario', {}),
                     file_path
@@ -380,16 +522,13 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     additional_data.get('vendedor', {}),
                     additional_data.get('comprador', {}),
                     additional_data.get('valor_venta'),
-                    file_path
+                    file_path,
+                    additional_data.get('forma_pago')
                 )
             elif form_type == 'formulario_tramite':
-                # Crear un diccionario con la estructura esperada por generate_formulario_tramite
-                tramite_data = {
-                    'vehiculo': extracted_data.get('vehiculo', {}),
-                    'propietario': additional_data.get('propietario', {})
-                }
-                logger.info(f"Datos para formulario de trámite: {tramite_data}")
-                success = generator.generate_formulario_tramite(tramite_data, file_path)
+                # Los datos completos vienen del formulario en additional_data
+                logger.info(f"Datos del formulario para PDF: {additional_data}")
+                success = generator.generate_formulario_tramite(additional_data, file_path)
             
             if success:
                 # Crear registro del formulario generado

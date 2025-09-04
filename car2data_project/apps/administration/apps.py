@@ -4,5 +4,3 @@ class AdministrationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.administration'
     verbose_name = 'Administración'
-
-default_app_config = 'apps.administration.apps.AdministrationConfig'

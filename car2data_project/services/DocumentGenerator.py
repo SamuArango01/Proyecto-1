@@ -1,3 +1,5 @@
+# car2data_project/services/DocumentGenerator.py
+
 import os
 import json
 from datetime import datetime
@@ -11,6 +13,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.units import inch
+from .PdfFormFiller import PDFFormFiller  # Nota: El nombre del archivo es case-sensitive
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,13 +21,37 @@ logger = logging.getLogger(__name__)
 class DocumentGenerator:
     """
     Servicio para generar documentos PDF autodiligenciados
+    Utiliza plantillas PDF oficiales cuando están disponibles,
+    y genera documentos con ReportLab como respaldo
     """
     
     def __init__(self):
-        self.templates_path = os.path.join(settings.BASE_DIR, 'templates', 'documents', 'pdf_templates')
+        # Asegurarse de que el directorio de plantillas existe
+        self.templates_path = os.path.join(settings.STATIC_ROOT, 'pdf_templates')
+        if not os.path.exists(self.templates_path):
+            os.makedirs(self.templates_path, exist_ok=True)
+            
         self.styles = getSampleStyleSheet()
         self.setup_custom_styles()
+        # Inicializar el sistema de relleno de formularios
+        self.pdf_form_filler = PDFFormFiller()
+        
+        # Verificar que las plantillas existan
+        self.verify_templates()
     
+    def verify_templates(self):
+        """Verificar que las plantillas necesarias existan"""
+        required_templates = [
+            'formulario_tramite_template.pdf',
+            'contrato_compraventa_template.pdf',
+            'contrato_mandato_template.pdf'
+        ]
+        
+        for template in required_templates:
+            template_path = os.path.join(self.templates_path, template)
+            if not os.path.exists(template_path):
+                logger.warning(f'Plantilla no encontrada: {template_path}')
+                
     def setup_custom_styles(self):
         """Configurar estilos personalizados para los PDFs"""
         if 'Title' not in self.styles:
@@ -55,7 +82,62 @@ class DocumentGenerator:
             ))
     
     def generate_contrato_mandato(self, extracted_data, mandante_data, mandatario_data, document_path):
-        """Genera un contrato de mandato autodiligenciado"""
+        """Genera un contrato de mandato usando plantilla PDF oficial"""
+        logger.info(f"Iniciando generación de Contrato de Mandato para el documento: {document_path}")
+        logger.debug(f"Datos extraídos: {json.dumps(extracted_data, indent=2, default=str)}")
+        logger.debug(f"Datos del mandante: {json.dumps(mandante_data, indent=2, default=str)}")
+        logger.debug(f"Datos del mandatario: {json.dumps(mandatario_data, indent=2, default=str)}")
+
+        try:
+            # Preparar datos para el relleno del formulario
+            form_data = {
+                'vehiculo': extracted_data.get('vehiculo', {}),
+                'mandante': {
+                    'nombre': mandante_data.get('nombre', ''),
+                    'documento': mandante_data.get('documento', ''),
+                    'ciudad': mandante_data.get('ciudad', ''),
+                    'direccion': mandante_data.get('direccion', ''),
+                    'telefono': mandante_data.get('telefono', '')
+                },
+                'mandatario': {
+                    'nombre': mandatario_data.get('nombre', ''),
+                    'documento': mandatario_data.get('documento', ''),
+                    'ciudad': mandatario_data.get('ciudad', ''),
+                    'direccion': mandatario_data.get('direccion', ''),
+                    'telefono': mandatario_data.get('telefono', '')
+                },
+                # Incluir todos los datos adicionales del formulario
+                'tramites_autorizados': extracted_data.get('tramites_autorizados', ''),
+                'organismo_transito': extracted_data.get('organismo_transito', ''),
+                'ciudad_contrato': extracted_data.get('ciudad_contrato', ''),
+                'fecha_contrato': extracted_data.get('fecha_contrato', '')
+            }
+            
+            # Asegurarse de que los datos del vehículo estén en el nivel superior para compatibilidad
+            if 'vehiculo' in extracted_data and extracted_data['vehiculo']:
+                form_data.update({
+                    'placa': extracted_data['vehiculo'].get('placa', ''),
+                    'marca': extracted_data['vehiculo'].get('marca', ''),
+                    'linea': extracted_data['vehiculo'].get('linea', ''),
+                    'modelo': extracted_data['vehiculo'].get('modelo', '')
+                })
+            
+            # Intentar usar plantilla PDF oficial primero
+            success = self.pdf_form_filler.fill_pdf_form('contrato_mandato', form_data, document_path)
+            
+            if success:
+                logger.info(f"Contrato de mandato generado con plantilla oficial: {document_path}")
+                return True
+            else:
+                logger.warning("Plantilla oficial no disponible, usando generación por ReportLab")
+                return self._generate_contrato_mandato_fallback(extracted_data, mandante_data, mandatario_data, document_path)
+                
+        except Exception as e:
+            logger.error(f"Error generando contrato de mandato: {str(e)}")
+            return False
+    
+    def _generate_contrato_mandato_fallback(self, extracted_data, mandante_data, mandatario_data, document_path):
+        """Método de respaldo para generar contrato de mandato con ReportLab"""
         try:
             doc = SimpleDocTemplate(document_path, pagesize=letter)
             elements = []
@@ -65,10 +147,29 @@ class DocumentGenerator:
             elements.append(title)
             elements.append(Spacer(1, 20))
             
-            # Debug: Log de los datos recibidos
-            logger.info(f"Datos extraídos recibidos en generate_contrato_mandato: {extracted_data}")
-            logger.info(f"Datos del mandante: {mandante_data}")
-            logger.info(f"Datos del mandatario: {mandatario_data}")
+            # Información del vehículo
+            vehiculo = extracted_data.get('vehiculo', {})
+            if vehiculo:
+                vehiculo_section = Paragraph("DATOS DEL VEHÍCULO", self.styles['Subtitle'])
+                elements.append(vehiculo_section)
+                
+                vehiculo_info = [
+                    ['Placa:', vehiculo.get('placa', 'N/A')],
+                    ['Marca:', vehiculo.get('marca', 'N/A')],
+                    ['Línea:', vehiculo.get('linea', 'N/A')],
+                    ['Modelo:', vehiculo.get('modelo', 'N/A')]
+                ]
+                
+                vehiculo_table = Table(vehiculo_info, colWidths=[2*inch, 4*inch])
+                vehiculo_table.setStyle(TableStyle([
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+                    ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
+                    ('FONTSIZE', (0,0), (-1,-1), 10),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                ]))
+                elements.append(vehiculo_table)
+                elements.append(Spacer(1, 20))
             
             # Información del mandante
             mandante_section = Paragraph("DATOS DEL MANDANTE", self.styles['Subtitle'])
@@ -116,18 +217,49 @@ class DocumentGenerator:
             elements.append(mandatario_table)
             elements.append(Spacer(1, 20))
             
+            # Información del contrato
+            contrato_section = Paragraph("INFORMACIÓN DEL CONTRATO", self.styles['Subtitle'])
+            elements.append(contrato_section)
+            
+            # Obtener datos del formulario
+            tramites = extracted_data.get('tramites_autorizados', 'No especificado')
+            organismo = extracted_data.get('organismo_transito', 'No especificado')
+            ciudad = extracted_data.get('ciudad_contrato', 'No especificada')
+            fecha = extracted_data.get('fecha_contrato', 'No especificada')
+            
+            if isinstance(fecha, str):
+                try:
+                    fecha_dt = datetime.strptime(fecha, '%Y-%m-%d')
+                    fecha = fecha_dt.strftime('%d/%m/%Y')
+                except (ValueError, TypeError):
+                    pass
+            
+            contrato_info = [
+                ['Trámites Autorizados:', tramites],
+                ['Organismo de Tránsito:', organismo],
+                ['Ciudad del Contrato:', ciudad],
+                ['Fecha del Contrato:', fecha]
+            ]
+            
+            contrato_table = Table(contrato_info, colWidths=[2*inch, 4*inch])
+            contrato_table.setStyle(TableStyle([
+                ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+                ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 10),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                ('VALIGN', (0,0), (0,0), 'TOP'),
+                ('VALIGN', (1,0), (1,0), 'TOP'),
+            ]))
+            elements.append(contrato_table)
+            elements.append(Spacer(1, 20))
+            
             # Información del vehículo
             vehiculo_section = Paragraph("DATOS DEL VEHÍCULO", self.styles['Subtitle'])
             elements.append(vehiculo_section)
             
-            # Asegurarse de que extracted_data es un diccionario
-            if not isinstance(extracted_data, dict):
-                logger.error(f"Error: extracted_data no es un diccionario: {type(extracted_data)}")
-                extracted_data = {}
-                
             # Obtener la información del vehículo de la estructura correcta
             vehiculo_info = extracted_data.get('vehiculo', {})
-            logger.info(f"Información del vehículo extraída: {vehiculo_info}")
             
             vehiculo_data = [
                 ['Placa:', vehiculo_info.get('placa', 'N/A')],
@@ -193,16 +325,61 @@ class DocumentGenerator:
             elements.append(Paragraph(fecha_info, self.styles['Normal']))
             
             doc.build(elements)
-            logger.info(f"Contrato de mandato generado exitosamente: {document_path}")
+            logger.info(f"Contrato de mandato generado exitosamente (fallback): {document_path}")
             return True
             
         except Exception as e:
-            logger.error(f"Error generando contrato de mandato: {str(e)}")
+            logger.error(f"Error generando contrato de mandato (fallback): {str(e)}")
             return False
     
     def generate_contrato_compraventa(self, extracted_data, vendedor_data, comprador_data, 
-                                    valor_venta, document_path):
-        """Genera un contrato de compraventa autodiligenciado"""
+                                    valor_venta, document_path, forma_pago=None):
+        """Genera un contrato de compraventa usando plantilla PDF oficial"""
+        logger.info(f"Iniciando generación de Contrato de Compraventa para el documento: {document_path}")
+        logger.debug(f"Datos extraídos para el vehículo: {json.dumps(extracted_data, indent=2, default=str)}")
+        logger.debug(f"Datos del vendedor: {json.dumps(vendedor_data, indent=2, default=str)}")
+        logger.debug(f"Datos del comprador: {json.dumps(comprador_data, indent=2, default=str)}")
+        logger.debug(f"Valor de venta: {valor_venta}")
+
+        try:
+            # Preparar datos para el relleno del formulario
+            form_data = {
+                'vehiculo': extracted_data.get('vehiculo', {}),
+                'vendedor': {
+                    'nombre': vendedor_data.get('nombre', ''),
+                    'documento': vendedor_data.get('documento', ''),
+                    'ciudad': vendedor_data.get('ciudad', ''),
+                    'direccion': vendedor_data.get('direccion', ''),
+                    'telefono': vendedor_data.get('telefono', '')
+                },
+                'comprador': {
+                    'nombre': comprador_data.get('nombre', ''),
+                    'documento': comprador_data.get('documento', ''),
+                    'ciudad': comprador_data.get('ciudad', ''),
+                    'direccion': comprador_data.get('direccion', ''),
+                    'telefono': comprador_data.get('telefono', '')
+                },
+                'valor_venta': valor_venta,
+                'forma_pago': forma_pago
+            }
+            
+            # Intentar usar plantilla PDF oficial primero
+            success = self.pdf_form_filler.fill_pdf_form('contrato_compraventa', form_data, document_path)
+            
+            if success:
+                logger.info(f"Contrato de compraventa generado con plantilla oficial: {document_path}")
+                return True
+            else:
+                logger.warning("Plantilla oficial no disponible, usando generación por ReportLab")
+                return self._generate_contrato_compraventa_fallback(extracted_data, vendedor_data, comprador_data, valor_venta, document_path)
+                
+        except Exception as e:
+            logger.error(f"Error generando contrato de compraventa: {str(e)}")
+            return False
+    
+    def _generate_contrato_compraventa_fallback(self, extracted_data, vendedor_data, comprador_data, 
+                                              valor_venta, document_path):
+        """Método de respaldo para generar contrato de compraventa con ReportLab"""
         try:
             doc = SimpleDocTemplate(document_path, pagesize=letter)
             elements = []
@@ -211,12 +388,6 @@ class DocumentGenerator:
             title = Paragraph("CONTRATO DE COMPRAVENTA VEHICULAR", self.styles['Title'])
             elements.append(title)
             elements.append(Spacer(1, 20))
-            
-            # Debug: Log de los datos recibidos
-            logger.info(f"Datos extraídos recibidos en generate_contrato_compraventa: {extracted_data}")
-            logger.info(f"Datos del vendedor: {vendedor_data}")
-            logger.info(f"Datos del comprador: {comprador_data}")
-            logger.info(f"Valor de venta: {valor_venta}")
             
             # Información del vendedor
             vendedor_section = Paragraph("DATOS DEL VENDEDOR", self.styles['Subtitle'])
@@ -268,14 +439,7 @@ class DocumentGenerator:
             vehiculo_section = Paragraph("DATOS DEL VEHÍCULO", self.styles['Subtitle'])
             elements.append(vehiculo_section)
             
-            # Asegurarse de que extracted_data es un diccionario
-            if not isinstance(extracted_data, dict):
-                logger.error(f"Error: extracted_data no es un diccionario: {type(extracted_data)}")
-                extracted_data = {}
-                
-            # Obtener la información del vehículo de la estructura correcta
             vehiculo_info = extracted_data.get('vehiculo', {})
-            logger.info(f"Información del vehículo extraída: {vehiculo_info}")
             
             vehiculo_data = [
                 ['Placa:', vehiculo_info.get('placa', 'N/A')],
@@ -368,110 +532,107 @@ class DocumentGenerator:
             elements.append(Paragraph(fecha_info, self.styles['Normal']))
             
             doc.build(elements)
-            logger.info(f"Contrato de compraventa generado exitosamente: {document_path}")
+            logger.info(f"Contrato de compraventa generado exitosamente (fallback): {document_path}")
             return True
             
         except Exception as e:
-            logger.error(f"Error generando contrato de compraventa: {str(e)}")
+            logger.error(f"Error generando contrato de compraventa (fallback): {str(e)}")
             return False
     
-    def generate_formulario_tramite(self, extracted_data, documento_path):
-        """Genera un formulario de trámite autodiligenciado"""
+    def generate_formulario_tramite(self, form_data, documento_path):
+        """Genera un formulario de trámite usando plantilla PDF oficial y los datos del formulario."""
+        logger.info(f"Iniciando generación de Formulario de Trámite: {documento_path}")
+        logger.debug(f"Datos del formulario para el PDF: {json.dumps(form_data, indent=2, default=str)}")
+
+        try:
+            # Los datos del formulario ya están completos, se pasan directamente
+            success = self.pdf_form_filler.fill_pdf_form('formulario_tramite', form_data, documento_path)
+            
+            if success:
+                logger.info(f"Formulario de trámite generado con plantilla oficial: {documento_path}")
+                return True
+            else:
+                logger.warning("Plantilla oficial no disponible, usando generación por ReportLab")
+                return self._generate_formulario_tramite_fallback(form_data, documento_path)
+                
+        except Exception as e:
+            logger.error(f"Error generando formulario de trámite: {str(e)}")
+            return False
+    
+    def _generate_formulario_tramite_fallback(self, form_data, documento_path):
+        """Método de respaldo para generar formulario de trámite con ReportLab usando datos del formulario."""
         try:
             doc = SimpleDocTemplate(documento_path, pagesize=letter)
             elements = []
             
-            # Título
             title = Paragraph("FORMULARIO DE TRÁMITE VEHICULAR", self.styles['Title'])
             elements.append(title)
             elements.append(Spacer(1, 20))
             
-            # Debug: Log de los datos recibidos
-            logger.info(f"Datos extraídos recibidos en generate_formulario_tramite: {extracted_data}")
-            
-            # Información del vehículo
             vehiculo_section = Paragraph("INFORMACIÓN DEL VEHÍCULO", self.styles['Subtitle'])
             elements.append(vehiculo_section)
             
-            # Asegurarse de que extracted_data es un diccionario
-            if not isinstance(extracted_data, dict):
-                logger.error(f"Error: extracted_data no es un diccionario: {type(extracted_data)}")
-                extracted_data = {}
-                
-            # Obtener la información del vehículo y propietario de la estructura correcta
-            vehiculo_info = extracted_data.get('vehiculo', {})
-            propietario_info = extracted_data.get('propietario', {})
-            
-            logger.info(f"Información del vehículo extraída: {vehiculo_info}")
-            logger.info(f"Información del propietario extraída: {propietario_info}")
-            
             vehiculo_data = [
-                ['Placa:', vehiculo_info.get('placa', 'N/A')],
-                ['Marca:', vehiculo_info.get('marca', 'N/A')],
-                ['Línea:', vehiculo_info.get('linea', 'N/A')],
-                ['Modelo:', str(vehiculo_info.get('modelo', 'N/A'))],
-                ['Color:', vehiculo_info.get('color', 'N/A')],
-                ['VIN:', vehiculo_info.get('vin', 'N/A')],
-                ['Número de Motor:', vehiculo_info.get('numero_motor', 'N/A')],
-                ['Número de Chasis:', vehiculo_info.get('numero_chasis', 'N/A')],
-                ['Cilindrada (cc):', str(vehiculo_info.get('cilindrada_cc', 'N/A'))],
-                ['Combustible:', vehiculo_info.get('combustible', 'N/A')],
-                ['Servicio:', vehiculo_info.get('servicio', 'N/A')],
-                ['Clase de Vehículo:', vehiculo_info.get('clase_vehiculo', 'N/A')],
-                ['Tipo de Carrocería:', vehiculo_info.get('tipo_carroceria', 'N/A')]
+                ['Placa:', form_data.get('placa', 'N/A')],
+                ['Marca:', form_data.get('marca', 'N/A')],
+                ['Línea:', form_data.get('linea', 'N/A')],
+                ['Modelo:', str(form_data.get('modelo', 'N/A'))],
+                ['Color:', form_data.get('color', 'N/A')],
+                ['VIN:', form_data.get('numero_vin', 'N/A')],
+                ['Número de Motor:', form_data.get('numero_motor', 'N/A')],
+                ['Número de Chasis:', form_data.get('numero_chasis', 'N/A')],
+                ['Cilindrada (cc):', str(form_data.get('cilindrada', 'N/A'))],
+                ['Carrocería:', form_data.get('carroceria', 'N/A')]
             ]
             
             vehiculo_table = Table(vehiculo_data, colWidths=[2*inch, 4*inch])
             vehiculo_table.setStyle(TableStyle([
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-                ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
                 ('FONTSIZE', (0,0), (-1,-1), 10),
                 ('BOTTOMPADDING', (0,0), (-1,-1), 6),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey)
             ]))
             elements.append(vehiculo_table)
             elements.append(Spacer(1, 20))
-            
-            # Información del propietario
+
             propietario_section = Paragraph("INFORMACIÓN DEL PROPIETARIO", self.styles['Subtitle'])
             elements.append(propietario_section)
             
-            # Usar propietario_info ya extraído
+            propietario_nombre = f"{form_data.get('propietario_primer_apellido','')} {form_data.get('propietario_segundo_apellido','')} {form_data.get('propietario_nombres','')}".strip()
             propietario_data = [
-                ['Nombre:', propietario_info.get('nombre', 'N/A')],
-                ['Identificación:', propietario_info.get('identificacion', 'N/A')]
+                ['Nombre:', propietario_nombre],
+                ['Identificación:', form_data.get('propietario_documento', 'N/A')],
+                ['Dirección:', form_data.get('propietario_direccion', 'N/A')],
+                ['Ciudad:', form_data.get('propietario_ciudad', 'N/A')],
+                ['Teléfono:', form_data.get('propietario_telefono', 'N/A')]
             ]
             
             propietario_table = Table(propietario_data, colWidths=[2*inch, 4*inch])
             propietario_table.setStyle(TableStyle([
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-                ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
                 ('FONTSIZE', (0,0), (-1,-1), 10),
                 ('BOTTOMPADDING', (0,0), (-1,-1), 6),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey)
             ]))
             elements.append(propietario_table)
             elements.append(Spacer(1, 20))
-            
-            # Detalles de registro
+
+            # Detalles de registro (si están disponibles en el formulario)
             registro_section = Paragraph("DETALLES DE REGISTRO", self.styles['Subtitle'])
             elements.append(registro_section)
-            
-            registro_info = extracted_data.get('detalles_registro', {})
+
             registro_data = [
-                ['Licencia de Tránsito:', registro_info.get('licencia_transito_numero', 'N/A')],
-                ['Organismo de Tránsito:', registro_info.get('organismo_transito', 'N/A')],
-                ['Fecha de Matrícula:', registro_info.get('fecha_matricula', 'N/A')],
-                ['Fecha Expedición:', registro_info.get('fecha_expedicion_licencia', 'N/A')]
+                ['Licencia de Tránsito:', form_data.get('licencia_transito', 'N/A')],
+                ['Organismo de Tránsito:', form_data.get('organismo_transito', 'N/A')],
+                ['Fecha de Matrícula:', form_data.get('fecha_matricula', 'N/A')]
             ]
             
             registro_table = Table(registro_data, colWidths=[2*inch, 4*inch])
             registro_table.setStyle(TableStyle([
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-                ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
                 ('FONTSIZE', (0,0), (-1,-1), 10),
                 ('BOTTOMPADDING', (0,0), (-1,-1), 6),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey)
@@ -488,11 +649,11 @@ class DocumentGenerator:
             elements.append(Paragraph(firma_info, self.styles['Normal']))
             
             doc.build(elements)
-            logger.info(f"Formulario de trámite generado exitosamente: {documento_path}")
+            logger.info(f"Formulario de trámite generado exitosamente (fallback): {documento_path}")
             return True
             
         except Exception as e:
-            logger.error(f"Error generando formulario de trámite: {str(e)}")
+            logger.error(f"Error generando formulario de trámite (fallback): {str(e)}")
             return False
     
     def number_to_words(self, number):
