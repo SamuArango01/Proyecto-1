@@ -1,19 +1,26 @@
 {% extends 'landing_base.html' %}
 {% load static %}
 
-{% block title %}Car2Data - Automatiza tus trámites vehiculares{% endblock %}
+{% block title %}Car2Data - Automatiza tus trámites vehiculares con IA{% endblock %}
 
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
         :root {
-            --car2data-dark-blue: #0e2455;
-            --car2data-turquoise: #12c3d6;
-            --car2data-orange: #f5a623;
+            --car2data-dark-blue: #0a1628;
+            --car2data-turquoise: #06b6d4;
+            --car2data-orange: #f59e0b;
+            --car2data-purple: #8b5cf6;
+            --car2data-pink: #ec4899;
+            --car2data-green: #10b981;
             --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-600: #4b5563;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
             --blue-100: #dbeafe;
             --blue-200: #bfdbfe;
             --blue-900: #1e3a8a;
@@ -25,10 +32,141 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #1f2937;
+            color: var(--gray-800);
+            overflow-x: hidden;
+            background: var(--gray-50);
+        }
+
+        /* Modern Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-dark {
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Gradient Backgrounds */
+        .gradient-bg-1 {
+            background: linear-gradient(135deg, var(--car2data-dark-blue) 0%, var(--car2data-turquoise) 50%, var(--car2data-purple) 100%);
+        }
+
+        .gradient-bg-2 {
+            background: linear-gradient(135deg, var(--car2data-turquoise) 0%, var(--car2data-orange) 50%, var(--car2data-pink) 100%);
+        }
+
+        .gradient-bg-3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--car2data-turquoise), var(--car2data-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-orange {
+            background: linear-gradient(135deg, var(--car2data-orange), var(--car2data-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Modern Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.6); }
+        }
+
+        @keyframes slide-in-up {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slide-in-left {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slide-in-right {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes rotate-360 {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes morph {
+            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-delayed {
+            animation: float 6s ease-in-out infinite;
+            animation-delay: -2s;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .morph-shape {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: morph 8s ease-in-out infinite;
+        }
+
+        .rotate-slow {
+            animation: rotate-360 20s linear infinite;
+        }
+
+        /* Hover Effects */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .hover-glow:hover {
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
+        }
+
+        /* Scroll Animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .container {
@@ -321,8 +459,8 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        .benefits-content {
-            space-y: 2rem;
+        .benefits-content > * + * {
+            margin-top: 2rem;
         }
 
         .benefits-stats {
@@ -779,49 +917,195 @@
     </style>
 {% endblock %}
 
+
 {% block content %}
 {% if not user.is_authenticated %}
 {{ block.super }}
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo flex items-center hover:scale-105 transition-transform duration-300">
-                    <div class="logo-icon mr-3">
-                        <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-12 w-auto drop-shadow-md hover:drop-shadow-xl transition-all duration-300">
-                    </div>
-                    <span class="logo-text font-bold text-2xl bg-gradient-to-r from-dark-blue to-tark-blue bg-clip-text text-transparent">
-                        Car2Data
-                    </span>
+    <!-- Modern Header with Glassmorphism -->
+    <header class="fixed top-0 w-full z-50 glass-dark">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center hover-lift">
+                    <span class="text-3xl md:text-4xl font-extrabold gradient-text tracking-tight">Car2Data</span>
                 </div>
-                <a href="{% url 'authentication:login' %}" class="btn btn-primary transform hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl">Iniciar Sesión</a>
+                
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-white/80 hover:text-white transition-all duration-300 hover:scale-105">Características</a>
+                    <a href="#how-it-works" class="text-white/80 hover:text-white transition-all duration-300 hover:scale-105">Cómo funciona</a>
+                    <a href="#pricing" class="text-white/80 hover:text-white transition-all duration-300 hover:scale-105">Precios</a>
+                    <a href="#contact" class="text-white/80 hover:text-white transition-all duration-300 hover:scale-105">Contacto</a>
+                </nav>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'authentication:login' %}" class="text-white/80 hover:text-white transition-all duration-300">Iniciar Sesión</a>
+                    <a href="{% url 'authentication:register' %}" class="px-6 py-3 gradient-bg-2 text-white rounded-full font-semibold hover-lift hover-glow transition-all duration-300">
+                        Comenzar Gratis
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-dark-blue to-turquoise text-white py-20">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
-            <div class="md:w-1/2 mb-10 md:mb-0">
-                <h1 class="text-4xl md:text-5xl font-bold mb-6">Automatiza tus trámites vehiculares con IA</h1>
-                <p class="text-xl mb-8 text-gray-100">Simplifica la gestión de tus documentos vehiculares con nuestra plataforma inteligente. Ahorra tiempo y evita filas interminables.</p>
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{% url 'authentication:login' %}" class="bg-white text-dark-blue hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-center transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                        Iniciar Sesión
-                    </a>
-                    <a href="{% url 'authentication:register' %}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-dark-blue font-bold py-3 px-8 rounded-lg text-center transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                        Registrarse
-                    </a>
+    <!-- Revolutionary Hero Section -->
+    <section class="relative min-h-screen flex items-center gradient-bg-1 overflow-hidden">
+        <!-- Animated Background Elements -->
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-10 w-72 h-72 gradient-bg-2 rounded-full morph-shape opacity-20 floating"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 gradient-bg-3 rounded-full morph-shape opacity-15 floating-delayed"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] gradient-bg-2 rounded-full opacity-5 rotate-slow"></div>
+        </div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Hero Content -->
+                <div class="text-white scroll-reveal">
+                    <div class="inline-flex items-center px-4 py-2 glass rounded-full mb-6">
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-3 pulse-glow"></span>
+                        <span class="text-sm font-medium">🚀 Revoluciona tus trámites vehiculares</span>
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-7xl font-black mb-6 leading-tight">
+                        Automatiza tus trámites vehiculares
+                        <span class="gradient-text-orange block">con Inteligencia</span>
+                        <span class="gradient-text">Artificial</span>
+                    </h1>
+                    
+                    <p class="text-xl lg:text-2xl mb-8 text-white/80 leading-relaxed">
+                        Transforma el proceso de diligenciar tus documentos para tramites vehiculares en <span class="gradient-text-orange font-bold">segundos</span>. 
+                        Sin intermediarios, sin errores, sin complicaciones.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                        <a href="{% url 'authentication:register' %}" class="group px-8 py-4 bg-white text-gray-900 rounded-2xl font-bold text-lg hover-lift hover-glow transition-all duration-300 flex items-center justify-center">
+                            <span>Comenzar Gratis</span>
+                            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#demo" class="group px-8 py-4 glass text-white rounded-2xl font-bold text-lg hover-lift transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-play mr-2"></i>
+                            <span>Ver Demo</span>
+                        </a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-8 text-white/60">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                            <span>100% Gratis</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-blue-400 mr-2"></i>
+                            <span>Datos Seguros</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                            <span>Resultados Instantáneos</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hero Visual -->
+                <div class="relative scroll-reveal">
+                    <div class="relative z-10">
+                        <!-- 3D Card Effect -->
+                        <div class="relative group">
+                            <div class="absolute -inset-1 gradient-bg-2 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                            <div class="relative glass rounded-3xl p-8 hover-lift">
+                                <!-- Mock Interface -->
+                                <div class="bg-white rounded-2xl p-6 mb-4">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-gray-500 text-sm">Car2Data AI</span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                                        <div class="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats Cards -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-4 text-white">
+                                        <div class="text-2xl font-bold">98%</div>
+                                        <div class="text-sm opacity-80">Precisión</div>
+                                    </div>
+                                    <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-4 text-white">
+                                        <div class="text-2xl font-bold">3s</div>
+                                        <div class="text-sm opacity-80">Procesamiento</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="absolute -top-10 -right-10 w-20 h-20 gradient-bg-2 rounded-full floating opacity-60"></div>
+                    <div class="absolute -bottom-10 -left-10 w-16 h-16 gradient-bg-3 rounded-full floating-delayed opacity-60"></div>
                 </div>
             </div>
-            <div class="md:w-1/2 flex justify-center">
-                <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-auto w-full max-w-xl animate-float hover:shadow-3xl transition-all duration-500">
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 animate-bounce">
+            <i class="fas fa-chevron-down text-2xl"></i>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 bg-white">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Planes y Precios</h2>
+                <p class="section-description">Escoge el plan que mejor se adapte a tus necesidades</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Plan Starter -->
+                <div class="feature-card card-hover border border-gray-100">
+                    <h3 class="text-xl font-semibold mb-2">Starter</h3>
+                    <p class="text-gray-600 mb-6">Para uso personal</p>
+                    <div class="text-4xl font-bold text-dark-blue mb-6">Gratis</div>
+                    <ul class="text-gray-600 space-y-2 mb-6">
+                        <li>• 3 documentos/mes</li>
+                        <li>• Previsualización de datos</li>
+                        <li>• Soporte por email</li>
+                    </ul>
+                    <a href="{% url 'authentication:register' %}" class="btn btn-primary w-full justify-center">Comenzar</a>
+                </div>
+                <!-- Plan Pro -->
+                <div class="feature-card card-hover border-2 border-turquoise relative overflow-hidden">
+                    <span class="absolute top-4 right-4 bg-turquoise text-white text-xs px-2 py-1 rounded-full">Más Popular</span>
+                    <h3 class="text-xl font-semibold mb-2">Pro</h3>
+                    <p class="text-gray-600 mb-6">Para usuarios frecuentes</p>
+                    <div class="text-4xl font-bold text-dark-blue mb-6">$19<span class="text-base font-medium text-gray-600">/mes</span></div>
+                    <ul class="text-gray-600 space-y-2 mb-6">
+                        <li>• 100 documentos/mes</li>
+                        <li>• Generación de formularios</li>
+                        <li>• Validaciones automáticas</li>
+                        <li>• Soporte prioritario</li>
+                    </ul>
+                    <a href="{% url 'authentication:register' %}" class="btn btn-primary w-full justify-center">Elegir Pro</a>
+                </div>
+                <!-- Plan Empresas -->
+                <div class="feature-card card-hover border border-gray-100">
+                    <h3 class="text-xl font-semibold mb-2">Empresas</h3>
+                    <p class="text-gray-600 mb-6">Volúmenes altos y API</p>
+                    <div class="text-4xl font-bold text-dark-blue mb-6">A medida</div>
+                    <ul class="text-gray-600 space-y-2 mb-6">
+                        <li>• Documentos ilimitados</li>
+                        <li>• Integraciones y API</li>
+                        <li>• SLA y soporte dedicado</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary w-full justify-center">Contactar ventas</a>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features">
+    <section id="features" class="features">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Funcionalidades Principales</h2>
@@ -994,7 +1278,7 @@
     </section>
 
     <!-- How It Works Section -->
-    <section class="how-it-works">
+    <section id="how-it-works" class="how-it-works">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">¿Cómo Funciona?</h2>
@@ -1059,8 +1343,37 @@
         </div>
     </section>
 
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-gray-50">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Contacto</h2>
+                <p class="section-description">¿Tienes preguntas? Estamos aquí para ayudarte.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="feature-card">
+                    <h3 class="text-lg font-semibold mb-4">Escríbenos</h3>
+                    <form action="#" method="post" class="space-y-4">
+                        <input type="text" placeholder="Nombre" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-turquoise">
+                        <input type="email" placeholder="Correo electrónico" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-turquoise">
+                        <textarea placeholder="Mensaje" rows="4" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-turquoise"></textarea>
+                        <button type="submit" class="btn btn-primary">Enviar</button>
+                    </form>
+                </div>
+                <div class="feature-card">
+                    <h3 class="text-lg font-semibold mb-4">Información</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center gap-3"><i class="fas fa-envelope text-turquoise"></i> info@car2data.com</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-phone text-turquoise"></i> +1 234 567 890</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-location-dot text-turquoise"></i> Ciudad, País</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Call to Action Section -->
-    <section class="bg-gradient-to-r from-dark-blue to-turquoise text-white py-16">
+    <section id="cta" class="bg-gradient-to-r from-dark-blue to-turquoise text-white py-16">
         <div class="container mx-auto px-4 text-center">
             <h2 class="text-3xl md:text-4xl font-bold mb-6">¿Listo para transformar tu experiencia con trámites vehiculares?</h2>
             <p class="text-xl mb-8 max-w-3xl mx-auto">Únete a miles de usuarios que ya están ahorrando tiempo y evitando dolores de cabeza con Car2Data</p>
@@ -1204,7 +1517,7 @@
         });
     }
 
-    // Simple scroll animation
+    // Scroll reveal + parallax + interactions
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -1213,14 +1526,16 @@
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
+                // Support both explicit scroll-reveal class and inline style fallback
+                entry.target.classList?.add('revealed');
                 entry.target.style.opacity = '1';
                 entry.target.style.transform = 'translateY(0)';
             }
         });
     }, observerOptions);
 
-    // Observe all feature cards and step cards
-    document.querySelectorAll('.feature-card, .step-card, .stat-item').forEach(el => {
+    // Observe feature, steps, stats and any .scroll-reveal elements
+    document.querySelectorAll('.feature-card, .step-card, .stat-item, .scroll-reveal').forEach(el => {
         if (el) {
             el.style.opacity = '0';
             el.style.transform = 'translateY(30px)';
@@ -1228,20 +1543,54 @@
             observer.observe(el);
         }
     });
-    
+
+    // Parallax effect for hero background
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('.gradient-bg-1');
+        if (parallax) {
+            parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
+    });
+
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+            if (!targetId || targetId === '#') return;
             const target = document.querySelector(targetId);
             if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+        });
+    });
+
+    // Dynamic particle generation
+    (function createParticles() {
+        const heroSection = document.querySelector('.gradient-bg-1');
+        if (!heroSection) return;
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            const size = Math.random() * 4 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 255, 0.3)`;
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            heroSection.appendChild(particle);
+        }
+    })();
+
+    // JS-enhanced hover for .hover-lift (keeps CSS hover as well)
+    document.querySelectorAll('.hover-lift').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
         });
     });
 </script>

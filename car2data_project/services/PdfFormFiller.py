@@ -97,7 +97,7 @@ class PDFFormFiller:
                 'numero_vin': (600, 290),
 
                 # Tipo de servicio - Campo 18 (coordenadas corregidas según imagen)
-                'servicio_particular': (595, 240),
+                'servicio_particular': (602, 240),
                 'servicio_publico': (620, 240),
                 'servicio_diplomatico': (650, 240),
                 'servicio_oficial': (680, 240),
@@ -110,11 +110,7 @@ class PDFFormFiller:
                 'propietario_nombres': (270, 290),
 
                 # Tipo de documento del propietario (reajustados)
-                'propietario_cc': (120, 135),
-                'propietario_nit': (150, 135),
-                'propietario_ce': (180, 135),
-                'propietario_pasaporte': (210, 135),
-                'propietario_otro_doc': (250, 135),
+
 
                 'propietario_documento': (320, 270),
                 'propietario_direccion': (30, 240),
@@ -127,11 +123,7 @@ class PDFFormFiller:
                 'comprador_nombres': (270, 155),
 
                 # Tipo de documento del comprador (reajustados)
-                'comprador_cc': (120, 60),
-                'comprador_nit': (150, 60),
-                'comprador_ce': (180, 60),
-                'comprador_pasaporte': (210, 60),
-                'comprador_otro_doc': (250, 60),
+
 
                 'comprador_documento': (320, 125),
                 'comprador_direccion': (30, 100),
@@ -139,7 +131,13 @@ class PDFFormFiller:
                 'comprador_telefono': (320, 100),
 
                 # Observaciones - Campo 23 (reposicionado)
-                'observaciones': (120, 165),
+                'observaciones': (390, 130),
+
+                # Datos de importación
+                'declaracion_importacion': (390, 250),
+                'importacion_dia': (480, 250),
+                'importacion_mes': (505, 250),
+                'importacion_ano': (545, 250),
             },
             
             'contrato_compraventa': {
@@ -197,11 +195,11 @@ class PDFFormFiller:
                 # Primera línea - datos del mandante (coordenadas corregidas)
                 'mandante_nombre': (240, 660),  # Aumentado de 635 a 680
                 'mandante_ciudad': (310, 645),  # Aumentado de 610 a 655
-                'mandante_documento': (240, 630), # Aumentado de 585 a 630
+                'mandante_documento': (245, 630), # Aumentado de 585 a 630
                 
                 # Segunda línea - datos del mandatario (coordenadas Y más altas)
                 'mandatario_nombre': (120, 600),  # Aumentado de 545 a 590
-                'mandatario_documento': (85, 570), # Aumentado de 510 a 555
+                'mandatario_documento': (90, 570), # Aumentado de 510 a 555
                 
                 # Trámites autorizados (reposicionado más arriba)
                 'tramites_autorizados': (90, 462), # Aumentado de 375 a 420
@@ -329,6 +327,14 @@ class PDFFormFiller:
             logger.error(f"Error al crear overlay para {form_type}: {str(e)}")
             logger.exception("Detalles del error:")
             return None
+
+    def _clean_document_number(self, doc_number: str) -> str:
+        """Limpia el número de documento eliminando prefijos comunes y caracteres no numéricos."""
+        if not doc_number:
+            return ''
+        # Eliminar prefijos comunes, puntos y espacios
+        cleaned = str(doc_number).upper().replace('C.C.', '').replace('CC', '').replace('.', '').strip()
+        return cleaned
     
     def _fill_formulario_tramite_improved(self, canvas_obj, data, coords):
         """Rellenar formulario de trámite con mapeo mejorado usando un diccionario de datos plano."""
@@ -438,7 +444,8 @@ class PDFFormFiller:
         self._draw_text_if_coord(canvas_obj, coords, 'propietario_nombres', data.get('propietario_nombres', '').upper())
 
         # Documento del propietario
-        self._draw_text_if_coord(canvas_obj, coords, 'propietario_documento', data.get('propietario_documento', ''))
+        propietario_documento = self._clean_document_number(data.get('propietario_documento', ''))
+        self._draw_text_if_coord(canvas_obj, coords, 'propietario_documento', propietario_documento)
         self._draw_text_if_coord(canvas_obj, coords, 'propietario_direccion', data.get('propietario_direccion', ''))
         self._draw_text_if_coord(canvas_obj, coords, 'propietario_ciudad', data.get('propietario_ciudad', ''))
         self._draw_text_if_coord(canvas_obj, coords, 'propietario_telefono', data.get('propietario_telefono', ''))
@@ -462,7 +469,8 @@ class PDFFormFiller:
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_nombres', data.get('comprador_nombres', '').upper())
 
         # Documento del comprador
-        self._draw_text_if_coord(canvas_obj, coords, 'comprador_documento', data.get('comprador_documento', ''))
+        comprador_documento = self._clean_document_number(data.get('comprador_documento', ''))
+        self._draw_text_if_coord(canvas_obj, coords, 'comprador_documento', comprador_documento)
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_direccion', data.get('comprador_direccion', ''))
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_ciudad', data.get('comprador_ciudad', ''))
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_telefono', data.get('comprador_telefono', ''))
@@ -479,6 +487,27 @@ class PDFFormFiller:
             self._draw_checkbox_if_coord(canvas_obj, coords, 'comprador_pasaporte', True)
         elif tipo_doc_compr:
             self._draw_checkbox_if_coord(canvas_obj, coords, 'comprador_otro_doc', True)
+
+        # DATOS DE IMPORTACIÓN
+        self._draw_text_if_coord(canvas_obj, coords, 'declaracion_importacion', data.get('declaracion_importacion', ''))
+        
+        fecha_importacion_str = str(data.get('fecha_importacion', ''))
+        if fecha_importacion_str:
+            try:
+                # Reemplazar separadores comunes y dividir
+                parts = fecha_importacion_str.replace('/', '-').split('-')
+                if len(parts) == 3:
+                    # Asumir formato AAAA-MM-DD o DD-MM-AAAA
+                    if len(parts[0]) == 4:
+                        ano, mes, dia = parts[0], parts[1], parts[2]
+                    else:
+                        dia, mes, ano = parts[0], parts[1], parts[2]
+                    
+                    self._draw_text_if_coord(canvas_obj, coords, 'importacion_dia', dia)
+                    self._draw_text_if_coord(canvas_obj, coords, 'importacion_mes', mes)
+                    self._draw_text_if_coord(canvas_obj, coords, 'importacion_ano', ano) # Año completo
+            except Exception as e:
+                logger.error(f"No se pudo procesar la fecha de importación '{fecha_importacion_str}': {e}")
         
         logger.info(f"Formulario de trámite completado con {len([k for k in coords.keys() if 'propietario' in k or 'vehiculo' in k])} campos")
 
@@ -627,11 +656,13 @@ class PDFFormFiller:
         
         # DATOS PARA FIRMAS
         # Mostrar solo los datos sin prefijos
-        self._draw_text_if_coord(canvas_obj, coords, 'vendedor_doc_firma', vendedor.get('documento', ''), font_size=fs)
+        vendedor_doc = self._clean_document_number(vendedor.get('documento', ''))
+        self._draw_text_if_coord(canvas_obj, coords, 'vendedor_doc_firma', vendedor_doc, font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'vendedor_dir_firma', vendedor.get('direccion', ''), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'vendedor_tel_firma', vendedor.get('telefono', ''), font_size=fs)
         
-        self._draw_text_if_coord(canvas_obj, coords, 'comprador_doc_firma', comprador.get('documento', ''), font_size=fs)
+        comprador_doc = self._clean_document_number(comprador.get('documento', ''))
+        self._draw_text_if_coord(canvas_obj, coords, 'comprador_doc_firma', comprador_doc, font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_dir_firma', comprador.get('direccion', ''), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'comprador_tel_firma', comprador.get('telefono', ''), font_size=fs)
         
@@ -642,27 +673,28 @@ class PDFFormFiller:
         vehiculo = data.get('vehiculo', {})
         mandante = data.get('mandante', {})
         mandatario = data.get('mandatario', {})
-        
+
+        # Limpiar números de documento
+        mandante_documento = self._clean_document_number(mandante.get('documento', ''))
+        mandatario_documento = self._clean_document_number(mandatario.get('documento', ''))
+
         logger.info(f"Rellenando contrato de mandato - Mandante: {mandante.get('nombre', 'N/A')}")
-        fs = 10  # tamaño de fuente ligeramente mayor
+        fs = 11  # tamaño de fuente ligeramente mayor
+        
+        # Usar los datos limpios en el PDF
+        self._draw_text_if_coord(canvas_obj, coords, 'mandante_documento', mandante_documento, font_size=fs)
+        self._draw_text_if_coord(canvas_obj, coords, 'mandatario_documento', mandatario_documento, font_size=fs)
         
         # DATOS DEL MANDANTE
         mandante_nombre = self._name_to_nombres_apellidos(mandante.get('nombre', ''))
         self._draw_text_if_coord(canvas_obj, coords, 'mandante_nombre', mandante_nombre.upper(), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'mandante_ciudad', mandante.get('ciudad', '').upper(), font_size=fs)
         
-        documento_mandante = mandante.get('documento', '')
-        if documento_mandante:
-            doc_text = f"C.C. {documento_mandante}" if documento_mandante.isdigit() else documento_mandante
-            self._draw_text_if_coord(canvas_obj, coords, 'mandante_documento', doc_text, font_size=fs)
         
         # DATOS DEL MANDATARIO (sin voltear, vienen del formulario)
         self._draw_text_if_coord(canvas_obj, coords, 'mandatario_nombre', mandatario.get('nombre', '').upper(), font_size=fs)
         
-        documento_mandatario = mandatario.get('documento', '')
-        if documento_mandatario:
-            doc_text = f"C.C. {documento_mandatario}" if documento_mandatario.isdigit() else documento_mandatario
-            self._draw_text_if_coord(canvas_obj, coords, 'mandatario_documento', doc_text, font_size=fs)
+        
         
         # TRÁMITES AUTORIZADOS
         tramites = data.get('tramites_autorizados', 'Matricula, registro, traspaso, cambio de propietario y demás trámites vehiculares')

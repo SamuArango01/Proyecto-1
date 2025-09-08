@@ -7,6 +7,7 @@ import logging
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, FormView, ListView
+from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse, Http404
 from django.contrib import messages
@@ -80,7 +81,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 initial_data = {
                     'placa': extracted_vehiculo.get('placa'),
                     'mandante_nombre': extracted_propietario.get('nombre'),
-                    'mandante_documento': extracted_propietario.get('documento'),
+                    'mandante_documento': extracted_propietario.get('identificacion') or extracted_propietario.get('documento'),
                     'mandante_direccion': extracted_propietario.get('direccion'),
                     'mandante_telefono': extracted_propietario.get('telefono'),
                     'mandante_ciudad': extracted_propietario.get('ciudad'),
@@ -90,7 +91,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
             elif form_type == 'contrato_compraventa':
                 initial_data = {
                     'vendedor_nombre': extracted_propietario.get('nombre'),
-                    'vendedor_documento': extracted_propietario.get('documento'),
+                    'vendedor_documento': extracted_propietario.get('identificacion') or extracted_propietario.get('documento'),
                     'vendedor_direccion': extracted_propietario.get('direccion'),
                     'vendedor_telefono': extracted_propietario.get('telefono'),
                     'vendedor_ciudad': extracted_propietario.get('ciudad'),
@@ -99,6 +100,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 
             elif form_type == 'formulario_tramite':
                 extracted_propietario = context['extracted_data'].get('propietario', {})
+                extracted_registro = context['extracted_data'].get('registro', {})
 
                 # Helper para separar nombre completo en apellidos y nombres
                 def split_apellidos_nombres(fullname: str):
@@ -141,6 +143,10 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'tipo_servicio': extracted_vehiculo.get('servicio'),
                     'clase_vehiculo': extracted_vehiculo.get('clase_vehiculo'),
                     'combustible': extracted_vehiculo.get('combustible'),
+
+                    # Datos de importación
+                    'declaracion_importacion': extracted_registro.get('declaracion_importacion'),
+                    'fecha_importacion': extracted_registro.get('fecha_importacion'),
                 }
                 
                 # Filtrar claves con valores None o vacíos para no enviar 'None' o '' al formulario
@@ -380,6 +386,7 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 extracted_data = document.get_structured_data()
                 extracted_vehiculo = extracted_data.get('vehiculo', {})
                 extracted_propietario = extracted_data.get('propietario', {})
+                extracted_registro = extracted_data.get('registro', {})
 
                 # Helper para separar nombre completo en apellidos y nombres
                 def split_apellidos_nombres(fullname: str):
@@ -419,6 +426,10 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'propietario_segundo_apellido': ap2,
                     'propietario_nombres': nombres,
                     'propietario_documento': extracted_propietario.get('identificacion'),
+
+                    # Datos de importación
+                    'declaracion_importacion': extracted_registro.get('declaracion_importacion'),
+                    'fecha_importacion': extracted_registro.get('fecha_importacion'),
                 }
 
                 # 2. Combinar con datos del formulario (los datos del form tienen prioridad)
@@ -613,6 +624,31 @@ class FormHistoryView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['active_tab'] = 'history'
         return context
+
+class DeleteGeneratedFormView(LoginRequiredMixin, View):
+    """Elimina un registro de formulario generado y su archivo PDF asociado."""
+    def post(self, request, form_id):
+        try:
+            generated_form = GeneratedForm.objects.get(id=form_id, user=request.user)
+
+            # Eliminar archivo del sistema si existe
+            if generated_form.generated_file and generated_form.generated_file.name:
+                try:
+                    file_path = generated_form.generated_file.path
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as e:
+                    logger.warning(f"No se pudo eliminar el archivo asociado (id={form_id}): {e}")
+
+            generated_form.delete()
+            messages.success(request, 'Documento eliminado del historial correctamente.')
+        except GeneratedForm.DoesNotExist:
+            messages.error(request, 'No se encontró el registro a eliminar.')
+        except Exception as e:
+            logger.error(f"Error eliminando formulario generado (id={form_id}): {e}")
+            messages.error(request, 'Ocurrió un error al eliminar el registro.')
+
+        return redirect('forms_generation:history')
 
 # Vista API para obtener datos de vista previa
 class PreviewDataView(LoginRequiredMixin, TemplateView):

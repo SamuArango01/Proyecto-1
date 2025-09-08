@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from apps.vehicles.models import Vehiculo, Persona
 from apps.documents.models import Document
 
@@ -79,8 +80,13 @@ class FormularioTramite(models.Model):
     id_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, db_column='id_vehiculo')
     id_propietario = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='tramites_propietario', db_column='id_propietario')
     id_comprador = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='tramites_comprador', db_column='id_comprador', null=True, blank=True)
-    tipo_servicio = models.CharField(max_length=30, choices=TIPO_SERVICIO_CHOICES, blank=True)
-    fecha_tramite = models.DateField(null=True, blank=True)
+    tipo_servicio = models.CharField(max_length=50, choices=TIPO_SERVICIO_CHOICES, default='particular')
+    fecha_tramite = models.DateField(default=timezone.now)
+    observaciones = models.TextField(blank=True)
+
+    # Datos de importación
+    declaracion_importacion = models.CharField(max_length=100, blank=True)
+    fecha_importacion = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
