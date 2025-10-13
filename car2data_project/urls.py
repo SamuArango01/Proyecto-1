@@ -16,6 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+try:
+    # Fallback: import the provider login view explicitly
+    from allauth.socialaccount.providers.google.views import oauth2_login as google_oauth2_login
+except Exception:
+    google_oauth2_login = None
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -25,7 +30,16 @@ urlpatterns = [
     path('dashboard/', include('apps.documents.urls')),
     path('vehicles/', include('apps.vehicles.urls')),
     path('forms/', include('apps.forms_generation.urls')),
+    # Include provider-specific URLs to ensure google_login is resolvable
+    path('accounts/', include('allauth.socialaccount.providers.google.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
+
+# Fallback route binding if include did not register the expected name/path
+if google_oauth2_login is not None:
+    urlpatterns += [
+        path('accounts/google/login/', google_oauth2_login, name='google_login'),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

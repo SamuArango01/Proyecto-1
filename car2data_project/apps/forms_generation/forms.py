@@ -272,6 +272,10 @@ class FormularioTramiteForm(forms.ModelForm):
     numero_vin = forms.CharField(max_length=50, label="Número VIN", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
     observaciones = forms.CharField(widget=forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'rows': 3}), required=False, label="Observaciones")
 
+    # Campos de importación
+    declaracion_importacion = forms.CharField(max_length=100, label="Declaración de Importación", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    fecha_importacion = forms.CharField(max_length=50, label="Fecha de Importación", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+
     class Meta:
         model = FormularioTramite
         fields = [
@@ -281,7 +285,8 @@ class FormularioTramiteForm(forms.ModelForm):
             'comprador_direccion', 'comprador_ciudad', 'comprador_telefono',
             'marca', 'linea', 'color', 'modelo', 'cilindrada', 'capacidad', 'potencia', 'carroceria',
             'numero_motor', 'numero_chasis', 'numero_serie', 'numero_vin',
-            'tipo_servicio', 'fecha_tramite', 'observaciones'
+            'tipo_servicio', 'fecha_tramite', 'observaciones',
+            'declaracion_importacion', 'fecha_importacion'
         ]
         widgets = {
             'tipo_servicio': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}),

@@ -20,6 +20,8 @@ urlpatterns = [
     
     # Vista del historial de formularios
     path('history/', views.FormHistoryView.as_view(), name='history'),
+    # Eliminar un formulario generado
+    path('delete/<int:form_id>/', views.DeleteGeneratedFormView.as_view(), name='delete'),
     
     # API para obtener datos de vista previa
     path('api/preview-data/', views.PreviewDataView.as_view(), name='preview_data'),

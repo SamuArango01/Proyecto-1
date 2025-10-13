@@ -34,13 +34,16 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ form.created_at|date:"d/m/Y H:i" }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'forms_generation:download' form.id %}" class="text-blue-600 hover:text-blue-900 mr-4">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-4">
+                            <a href="{% url 'forms_generation:download' form.id %}" class="text-blue-600 hover:text-blue-900">
                                 <i class="fas fa-download"></i> Descargar
                             </a>
-                            <a href="#" class="text-red-600 hover:text-red-900">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </a>
+                            <form method="post" action="{% url 'forms_generation:delete' form.id %}" onsubmit="return confirm('¿Seguro que deseas eliminar este documento del historial? Esta acción no se puede deshacer.');">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}

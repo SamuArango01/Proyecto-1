@@ -44,6 +44,7 @@ crispy-bootstrap5==0.7
 django-cors-headers==4.3.1      # CORS
 django-extensions==3.2.3        # Herramientas de desarrollo
 python-decouple==3.8            # Manejo de .env
+django-allauth==0.57.0          # Autenticación social (Google, etc.)
 
 # ===========================
 # Utilidades

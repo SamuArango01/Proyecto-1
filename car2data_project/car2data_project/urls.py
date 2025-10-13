@@ -13,6 +13,9 @@ urlpatterns = [
     path('dashboard/', include('apps.documents.urls')),
     path('vehicles/', include('apps.vehicles.urls')),
     path('forms/', include('apps.forms_generation.urls')),
+    # Social auth routes (allauth)
+    path('accounts/', include('allauth.socialaccount.providers.google.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:
