@@ -304,12 +304,6 @@ El servicio de extracción de documentos utiliza:
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## Soporte
-
-Para soporte técnico o consultas:
-- **Email**: soporte@car2data.com
-- **Documentación**: /docs/
-- **Issues**: Reporta problemas en el repositorio
 
 ## Changelog
 
