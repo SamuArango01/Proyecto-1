@@ -3,12 +3,12 @@
 {% block title %}Generar {{ form_type|title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
     <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
+    <div class="mb-6 sm:mb-8" data-animate="fade-in">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-dark-blue mb-2">
+                <h1 class="text-2xl sm:text-3xl font-bold text-dark-blue mb-2">
                     {% if form_type == 'contrato_mandato' %}
                         Generar Contrato de Mandato
                     {% elif form_type == 'contrato_compraventa' %}
@@ -17,32 +17,43 @@
                         Generar Formulario de Trámite
                     {% endif %}
                 </h1>
-                <p class="text-gray-600">
+                <p class="text-sm sm:text-base text-gray-600">
                     Complete los datos adicionales para generar el documento autodiligenciado
                 </p>
             </div>
-            <div class="text-right">
-                <span class="text-sm text-gray-500">Documento fuente:</span>
-                <p class="font-medium text-dark-blue">{{ document.name }}</p>
+            <div class="sm:text-right">
+                <span class="text-xs sm:text-sm text-gray-500">Documento fuente:</span>
+                <p class="text-sm sm:text-base font-medium text-dark-blue truncate max-w-xs">{{ document.name }}</p>
             </div>
         </div>
     </div>
 
-    <form method="post" class="space-y-8">
+    <form method="post" class="space-y-6 sm:space-y-8">
         {% csrf_token %}
         <input type="hidden" name="document_id" value="{{ document.id }}">
         <input type="hidden" name="form_type" value="{{ form_type }}">
 
         <!-- Información del Vehículo (Solo lectura) -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4 flex items-center">
-                <svg class="h-5 w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" data-scroll="fade-up">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4 flex items-center">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
                 Datos del Vehículo (Extraídos automáticamente)
             </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <script>
+            function toggleMandatarioSection(checked) {
+                var sec = document.getElementById('mandatario-section');
+                if (!sec) return;
+                sec.style.display = checked ? 'block' : 'none';
+            }
+            // Inicializar estado al cargar
+            (function(){
+                var cb = document.getElementById('id_tiene_mandatario');
+                if (cb) { toggleMandatarioSection(cb.checked); }
+            })();
+        </script>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Placa</label>
                     <input type="text" value="{{ extracted_data.vehiculo.placa|default:'N/A' }}" readonly
@@ -78,48 +89,91 @@
 
         {% if form_type == 'contrato_mandato' %}
         <!-- Datos del Mandante -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4 flex items-center">
-                <svg class="h-5 w-5 text-orange mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" data-scroll="fade-up">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4 flex items-center">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-orange mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
                 Datos del Mandante (Pre-completados)
             </h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
-                    {{ form.mandante_nombre }}
+                    {% with v0=form.mandante_nombre.value v1=extracted_data.propietario.nombre %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="mandante_nombre" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.mandante_nombre }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                     {% if form.mandante_nombre.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.mandante_nombre.errors.0 }}</p>
                     {% endif %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Documento *</label>
-                    {{ form.mandante_documento }}
+                    {% with v0=form.mandante_documento.value v1=extracted_data.propietario.identificacion %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="mandante_documento" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.mandante_documento }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                     {% if form.mandante_documento.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.mandante_documento.errors.0 }}</p>
                     {% endif %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                    {{ form.mandante_direccion }}
+                    {% with v0=form.mandante_direccion.value v1=extracted_data.propietario.direccion %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="mandante_direccion" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.mandante_direccion }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                    {{ form.mandante_telefono }}
+                    {% with v0=form.mandante_telefono.value v1=extracted_data.propietario.telefono %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="mandante_telefono" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.mandante_telefono }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
-                    {{ form.mandante_ciudad }}
+                    {% with v0=form.mandante_ciudad.value v1=extracted_data.propietario.ciudad %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="mandante_ciudad" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.mandante_ciudad }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
             </div>
         </div>
 
+        <!-- Toggle Mandatario -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-center gap-3">
+                <input id="id_tiene_mandatario" name="tiene_mandatario" type="checkbox" class="h-4 w-4 text-turquoise border-gray-300 rounded" {% if form.tiene_mandatario.value or form.tiene_mandatario.value is None %}checked{% endif %} onclick="toggleMandatarioSection(this.checked)">
+                <label for="id_tiene_mandatario" class="text-sm font-medium text-gray-700">Tiene mandatario</label>
+            </div>
+        </div>
+
         <!-- Datos del Mandatario -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4 flex items-center">
-                <svg class="h-5 w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="mandatario-section" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" style="display: {% if form.tiene_mandatario.value or form.tiene_mandatario.value is None %}block{% else %}none{% endif %};">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4 flex items-center">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
                 Datos del Mandatario
@@ -156,8 +210,8 @@
         </div>
 
         <!-- Detalles del Contrato -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4">Detalles del Contrato</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4">Detalles del Contrato</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
@@ -181,9 +235,9 @@
 
         {% elif form_type == 'contrato_compraventa' %}
         <!-- Datos del Vendedor -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4 flex items-center">
-                <svg class="h-5 w-5 text-orange mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4 flex items-center">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-orange mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
                 Datos del Vendedor (Pre-completados)
@@ -192,31 +246,66 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
-                    {{ form.vendedor_nombre }}
+                    {% with v0=form.vendedor_nombre.value v1=extracted_data.propietario.nombre %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="vendedor_nombre" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.vendedor_nombre }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Documento *</label>
-                    {{ form.vendedor_documento }}
+                    {% with v0=form.vendedor_documento.value v1=extracted_data.propietario.identificacion %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="vendedor_documento" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.vendedor_documento }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                    {{ form.vendedor_direccion }}
+                    {% with v0=form.vendedor_direccion.value v1=extracted_data.propietario.direccion %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="vendedor_direccion" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.vendedor_direccion }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                    {{ form.vendedor_telefono }}
+                    {% with v0=form.vendedor_telefono.value v1=extracted_data.propietario.telefono %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="vendedor_telefono" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.vendedor_telefono }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
-                    {{ form.vendedor_ciudad }}
+                    {% with v0=form.vendedor_ciudad.value v1=extracted_data.propietario.ciudad %}{% with val=v0|default:v1 %}
+                        {% if val %}
+                            <input type="hidden" name="vendedor_ciudad" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.vendedor_ciudad }}
+                        {% endif %}
+                    {% endwith %}{% endwith %}
                 </div>
             </div>
         </div>
 
         <!-- Datos del Comprador -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4 flex items-center">
-                <svg class="h-5 w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4 flex items-center">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-turquoise mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
                 Datos del Comprador
@@ -247,8 +336,8 @@
         </div>
 
         <!-- Detalles de la Venta -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4">Detalles de la Venta</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4">Detalles de la Venta</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -276,16 +365,86 @@
 
         {% elif form_type == 'formulario_tramite' %}
         <!-- Datos del Propietario -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-dark-blue mb-4">Datos del Propietario</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_primer_apellido.label }} *</label>{{ form.propietario_primer_apellido }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_segundo_apellido.label }}</label>{{ form.propietario_segundo_apellido }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_nombres.label }} *</label>{{ form.propietario_nombres }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_documento.label }} *</label>{{ form.propietario_documento }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_direccion.label }} *</label>{{ form.propietario_direccion }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_ciudad.label }} *</label>{{ form.propietario_ciudad }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_telefono.label }} *</label>{{ form.propietario_telefono }}</div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-dark-blue mb-3 sm:mb-4">Datos del Propietario</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_primer_apellido.label }} *</label>
+                    {% with val=form.propietario_primer_apellido.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_primer_apellido" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_primer_apellido }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_segundo_apellido.label }}</label>
+                    {% with val=form.propietario_segundo_apellido.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_segundo_apellido" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_segundo_apellido }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_nombres.label }} *</label>
+                    {% with val=form.propietario_nombres.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_nombres" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_nombres }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_documento.label }} *</label>
+                    {% with val=form.propietario_documento.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_documento" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_documento }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_direccion.label }} *</label>
+                    {% with val=form.propietario_direccion.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_direccion" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_direccion }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_ciudad.label }} *</label>
+                    {% with val=form.propietario_ciudad.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_ciudad" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_ciudad }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.propietario_telefono.label }} *</label>
+                    {% with val=form.propietario_telefono.value %}
+                        {% if val %}
+                            <input type="hidden" name="propietario_telefono" value="{{ val }}">
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>
+                        {% else %}
+                            {{ form.propietario_telefono }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
             </div>
         </div>
 
@@ -307,18 +466,57 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-dark-blue mb-4">Datos Adicionales del Vehículo</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.marca.label }} *</label>{{ form.marca }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.linea.label }} *</label>{{ form.linea }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.color.label }} *</label>{{ form.color }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.modelo.label }} *</label>{{ form.modelo }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.cilindrada.label }} *</label>{{ form.cilindrada }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.capacidad.label }} *</label>{{ form.capacidad }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.potencia.label }} *</label>{{ form.potencia }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.carroceria.label }} *</label>{{ form.carroceria }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_motor.label }} *</label>{{ form.numero_motor }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_chasis.label }} *</label>{{ form.numero_chasis }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_serie.label }} *</label>{{ form.numero_serie }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_vin.label }} *</label>{{ form.numero_vin }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.marca.label }} *</label>{% with v0=form.marca.value v1=extracted_data.informacion_vehiculo.marca v2=extracted_data.vehiculo.marca %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="marca" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.marca }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.linea.label }} *</label>{% with v0=form.linea.value v1=extracted_data.informacion_vehiculo.linea v2=extracted_data.vehiculo.linea %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="linea" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.linea }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.color.label }} *</label>{% with v0=form.color.value v1=extracted_data.informacion_vehiculo.color v2=extracted_data.vehiculo.color %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="color" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.color }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.modelo.label }} *</label>{% with v0=form.modelo.value v1=extracted_data.informacion_vehiculo.modelo v2=extracted_data.vehiculo.modelo %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="modelo" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.modelo }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.cilindrada.label }} *</label>{% with v0=form.cilindrada.value v1=extracted_data.informacion_vehiculo.cilindrada_cc v2=extracted_data.vehiculo.cilindrada_cc %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="cilindrada" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.cilindrada }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.capacidad.label }} *</label>{% with v0=form.capacidad.value v1=extracted_data.informacion_vehiculo.capacidad_kg_psj v2=extracted_data.vehiculo.capacidad_kg_psj %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="capacidad" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.capacidad }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.potencia.label }} *</label>{% with v0=form.potencia.value v1=extracted_data.informacion_vehiculo.potencia_hp v2=extracted_data.vehiculo.potencia_hp %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="potencia" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.potencia }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.carroceria.label }} *</label>{% with v0=form.carroceria.value v1=extracted_data.informacion_vehiculo.tipo_carroceria v2=extracted_data.vehiculo.tipo_carroceria %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="carroceria" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.carroceria }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_motor.label }} *</label>{% with v0=form.numero_motor.value v1=extracted_data.informacion_vehiculo.numero_motor v2=extracted_data.vehiculo.numero_motor %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="numero_motor" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.numero_motor }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.reg_numero_motor.label }}</label>
+                    {% with v0=form.reg_numero_motor.value v1=extracted_data.informacion_vehiculo.reg_numero_motor v2=extracted_data.vehiculo.reg_numero_motor %}
+                        {% with val=v0|default:v1|default:v2 %}
+                            {% if val and val|lower != 'no disponible' %}
+                                <input type="hidden" name="reg_numero_motor" value="{{ val|upper }}">
+                                <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val|upper }}</div>
+                            {% else %}
+                                {{ form.reg_numero_motor }}
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_chasis.label }} *</label>{% with v0=form.numero_chasis.value v1=extracted_data.informacion_vehiculo.numero_chasis v2=extracted_data.vehiculo.numero_chasis %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="numero_chasis" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.numero_chasis }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.reg_numero_chasis.label }}</label>
+                    {% with v0=form.reg_numero_chasis.value v1=extracted_data.informacion_vehiculo.reg_numero_chasis v2=extracted_data.vehiculo.reg_numero_chasis %}
+                        {% with val=v0|default:v1|default:v2 %}
+                            {% if val and val|lower != 'no disponible' %}
+                                <input type="hidden" name="reg_numero_chasis" value="{{ val|upper }}">
+                                <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val|upper }}</div>
+                            {% else %}
+                                {{ form.reg_numero_chasis }}
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_serie.label }} *</label>{% with v0=form.numero_serie.value v1=extracted_data.informacion_vehiculo.numero_serie v2=extracted_data.vehiculo.numero_serie %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="numero_serie" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.numero_serie }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.reg_numero_serie.label }}</label>
+                    {% with v0=form.reg_numero_serie.value v1=extracted_data.informacion_vehiculo.reg_numero_serie v2=extracted_data.vehiculo.reg_numero_serie %}
+                        {% with val=v0|default:v1|default:v2 %}
+                            {% if val and val|lower != 'no disponible' %}
+                                <input type="hidden" name="reg_numero_serie" value="{{ val|upper }}">
+                                <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val|upper }}</div>
+                            {% else %}
+                                {{ form.reg_numero_serie }}
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.numero_vin.label }} *</label>{% with v0=form.numero_vin.value v1=extracted_data.informacion_vehiculo.vin v2=extracted_data.vehiculo.vin %}{% with val=v0|default:v1|default:v2 %}{% if val %}<input type="hidden" name="numero_vin" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.numero_vin }}{% endif %}{% endwith %}{% endwith %}</div>
             </div>
         </div>
 
@@ -326,8 +524,8 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-dark-blue mb-4">Datos de Importación</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.declaracion_importacion.label }}</label>{{ form.declaracion_importacion }}</div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.fecha_importacion.label }}</label>{{ form.fecha_importacion }}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.declaracion_importacion.label }}</label>{% with v0=form.declaracion_importacion.value v1=extracted_data.registro.declaracion_importacion %}{% with val=v0|default:v1 %}{% if val %}<input type="hidden" name="declaracion_importacion" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.declaracion_importacion }}{% endif %}{% endwith %}{% endwith %}</div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ form.fecha_importacion.label }}</label>{% with v0=form.fecha_importacion.value v1=extracted_data.registro.fecha_importacion %}{% with val=v0|default:v1 %}{% if val %}<input type="hidden" name="fecha_importacion" value="{{ val }}"><div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">{{ val }}</div>{% else %}{{ form.fecha_importacion }}{% endif %}{% endwith %}{% endwith %}</div>
             </div>
         </div>
 
@@ -353,15 +551,6 @@
             </a>
             
             <div class="space-x-4">
-                <button type="button" onclick="previewDocument()" 
-                        class="btn-secondary flex items-center space-x-2">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                    <span>Vista Previa</span>
-                </button>
-                
                 <button type="submit" class="btn btn-success flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -374,11 +563,6 @@
 </div>
 
 <script>
-function previewDocument() {
-    // Implementar vista previa del documento
-    alert('Función de vista previa en desarrollo');
-}
-
 // Auto-completar valor en letras cuando se ingresa el valor numérico
 document.querySelector('input[name="valor_venta"]')?.addEventListener('input', function() {
     const valor = parseFloat(this.value);

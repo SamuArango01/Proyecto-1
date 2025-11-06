@@ -2,18 +2,78 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
     <!-- Header del dashboard -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-dark-blue mb-2">
+    <div class="mb-6 sm:mb-8" data-animate="fade-in">
+        <h1 class="text-2xl sm:text-3xl font-bold text-dark-blue mb-2">
             Bienvenido, {{ user.first_name|default:user.username }}
         </h1>
-        <p class="text-gray-600">Gestiona tus documentos vehiculares de manera inteligente</p>
+        <p class="text-sm sm:text-base text-gray-600">Gestiona tus documentos vehiculares de manera inteligente</p>
     </div>
 
+    <!-- ⭐ PLAN Y LÍMITE DE DOCUMENTOS -->
+    {% if not can_upload %}
+    <!-- Bloqueo Total - Ha alcanzado el límite -->
+    <div class="bg-gradient-to-r from-orange to-red-500 text-white rounded-lg shadow-lg p-6 mb-6 sm:mb-8 border-2 border-red-600" data-animate="scale">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="bg-white/20 rounded-full p-3">
+                    <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-1">🚫 Límite Alcanzado</h3>
+                    <p class="text-white/90">Has usado {{ documents_used }} de {{ documents_limit }} documentos del plan {{ plan_name }}.</p>
+                    <p class="text-white/80 text-sm mt-1">Mejora a Pro para desbloquear 100 documentos/mes y funciones avanzadas.</p>
+                </div>
+            </div>
+            <a href="{% url 'authentication:checkout' %}" 
+               class="bg-white text-orange hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-xl hover:scale-105 inline-flex items-center space-x-2">
+                <span>🚀 Mejorar a Pro - $19/mes</span>
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <!-- Contador Normal de Documentos -->
+    <div class="bg-gradient-to-r from-dark-blue to-turquoise text-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8" data-animate="fade-in">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="bg-white/20 rounded-full p-3">
+                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white/80 text-sm">Plan: <span class="font-semibold">{{ plan_name }}</span></p>
+                    <p class="text-xl font-bold">
+                        Documentos: {{ documents_used }} / {{ documents_limit }}
+                        {% if documents_remaining > 0 %}
+                            <span class="text-sm font-normal text-white/80">(Te quedan {{ documents_remaining }})</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% if plan_name == 'Starter' %}
+            <a href="{% url 'authentication:checkout' %}" 
+               class="bg-white text-turquoise hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-all duration-300 hover:shadow-lg text-sm sm:text-base">
+                Mejorar a Pro
+            </a>
+            {% endif %}
+        </div>
+        
+        <!-- Barra de progreso -->
+        <div class="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+            {% widthratio documents_used documents_limit 100 as progress_percentage %}
+            <div class="bg-white h-full transition-all duration-500" 
+                 style="width: {{ progress_percentage }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Tarjetas de estadísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8" data-animate="stagger">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <div class="h-8 w-8 bg-turquoise rounded-lg flex items-center justify-center">
@@ -29,7 +89,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" data-hover="lift">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <div class="h-8 w-8 bg-turquoise rounded-lg flex items-center justify-center">
@@ -45,7 +105,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" data-hover="lift">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <div class="h-8 w-8 bg-orange rounded-lg flex items-center justify-center">
@@ -63,34 +123,93 @@
     </div>
 
     <!-- Sección de carga de documentos -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 mb-6 sm:mb-8" data-scroll="fade-up">
         <div class="text-center">
             <div class="mx-auto h-16 w-16 bg-gradient-to-r from-dark-blue to-turquoise rounded-full flex items-center justify-center mb-6">
                 <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Subir Documentos Vehiculares</h3>
-            <p class="text-gray-600 mb-6 max-w-md mx-auto">
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Subir Documentos Vehiculares</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-6 max-w-md mx-auto">
                 Arrastra y suelta tus PDFs aquí o navega archivos para comenzar a procesar tus documentos
             </p>
-            <a href="{% url 'documents:upload' %}" 
-               class="btn-primary inline-flex items-center space-x-2">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                </svg>
-                <span>Examinar Archivos</span>
-            </a>
+            {% if can_upload %}
+                <a href="{% url 'documents:upload' %}" 
+                   class="btn-primary inline-flex items-center space-x-2" data-animate="button">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <span>Examinar Archivos</span>
+                </a>
+            {% else %}
+                <button disabled
+                   class="bg-gray-400 cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 opacity-60">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>Límite Alcanzado</span>
+                </button>
+                <p class="text-orange font-semibold mt-4">
+                    Mejora a Pro para continuar subiendo documentos
+                </p>
+            {% endif %}
         </div>
     </div>
 
     <!-- Actividad reciente -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-gray-900">Actividad Reciente</h2>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200" data-scroll="fade-up">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900">Actividad Reciente</h2>
         </div>
         
-        <div class="overflow-hidden">
+        <!-- Vista móvil (tarjetas) -->
+        <div class="block md:hidden">
+            {% for document in recent_documents %}
+            <div class="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-200" data-animate="fade-in">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center flex-1 min-w-0">
+                        <div class="flex-shrink-0 h-10 w-10 bg-turquoise rounded-lg flex items-center justify-center mr-3">
+                            <svg class="h-6 w-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ document.name }}</p>
+                            <p class="text-xs text-gray-500">{{ document.file.size|filesizeformat }}</p>
+                        </div>
+                    </div>
+                    <span class="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0
+                        {% if document.status == 'completed' %}bg-turquoise text-dark-blue
+                        {% elif document.status == 'processing' %}bg-orange text-white
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ document.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-xs text-gray-500">{{ document.uploaded_at|date:"M d, Y" }}</span>
+                    <a href="{% url 'documents:data_preview' document.id %}" 
+                       class="text-sm text-turquoise hover:text-dark-blue font-medium">
+                        Ver detalles →
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p class="text-base font-medium text-gray-900 mb-2">No hay documentos recientes</p>
+                <p class="text-sm text-gray-500 mb-4">Comienza subiendo tu primer documento</p>
+                <a href="{% url 'documents:upload' %}" class="btn-primary inline-block">
+                    Subir primer documento
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Vista desktop (tabla) -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>

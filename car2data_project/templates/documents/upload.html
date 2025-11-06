@@ -4,17 +4,18 @@
 {% block content %}
 <div class="px-40 flex flex-1 justify-center py-5">
     <div class="layout-content-container flex flex-col w-[512px] max-w-[512px] py-5">
-        <h2 class="text-dark-blue tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
+        <h2 class="text-dark-blue tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5" data-animate="fade-in">
             Subir Documento Vehicular
         </h2>
         
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" data-animate="scale">
             {% csrf_token %}
             
             <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label class="flex flex-col min-w-40 flex-1">
-                    <p class="text-dark-blue text-base font-medium leading-normal pb-2">Nombre del Documento</p>
+                    <p class="text-dark-blue text-base font-medium leading-normal pb-2">Placa del Vehículo</p>
                     {{ form.name }}
+                    <p class="text-gray-500 text-xs mt-1">Ejemplo: ABC123 o XYZ789</p>
                 </label>
             </div>
             
@@ -33,7 +34,7 @@
             </div>
             
             <div class="flex px-4 py-3">
-                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-turquoise text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-turquoise text-white text-sm font-bold leading-normal tracking-[0.015em]" data-animate="button">
                     <span class="truncate">Subir y Procesar</span>
                 </button>
             </div>

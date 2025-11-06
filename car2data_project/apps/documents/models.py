@@ -54,28 +54,39 @@ class Document(models.Model):
         try:
             data = json.loads(self.extracted_data_json)
 
+            # Crear diccionario de información del vehículo
+            info_vehiculo = {
+                'placa': self.safe_get(data, ['informacion_vehiculo', 'placa']),
+                'marca': self.safe_get(data, ['informacion_vehiculo', 'marca']),
+                'linea': self.safe_get(data, ['informacion_vehiculo', 'linea']),
+                'modelo': self.safe_get(data, ['informacion_vehiculo', 'modelo']),
+                'color': self.safe_get(data, ['informacion_vehiculo', 'color']),
+                'vin': self.safe_get(data, ['informacion_vehiculo', 'vin']),
+                'numero_motor': self.safe_get(data, ['informacion_vehiculo', 'numero_motor']),
+                'reg_numero_motor': self.safe_get(data, ['informacion_vehiculo', 'reg_numero_motor']),
+                'numero_chasis': self.safe_get(data, ['informacion_vehiculo', 'numero_chasis']),
+                'reg_numero_chasis': self.safe_get(data, ['informacion_vehiculo', 'reg_numero_chasis']),
+                'numero_serie': self.safe_get(data, ['informacion_vehiculo', 'numero_serie']),
+                'reg_numero_serie': self.safe_get(data, ['informacion_vehiculo', 'reg_numero_serie']),
+                'cilindrada_cc': self.safe_get(data, ['informacion_vehiculo', 'cilindrada_cc']),
+                'combustible': self.safe_get(data, ['informacion_vehiculo', 'combustible']),
+                'servicio': self.safe_get(data, ['informacion_vehiculo', 'servicio']),
+                'clase_vehiculo': self.safe_get(data, ['informacion_vehiculo', 'clase_vehiculo']),
+                'tipo_carroceria': self.safe_get(data, ['informacion_vehiculo', 'tipo_carroceria']),
+                'capacidad_kg_psj': self.safe_get(data, ['informacion_vehiculo', 'capacidad_kg_psj']),
+                'potencia_hp': self.safe_get(data, ['informacion_vehiculo', 'potencia_hp']),
+                'puertas': self.safe_get(data, ['informacion_vehiculo', 'puertas'])
+            }
+            
             structured = {
-                'vehiculo': {
-                    'placa': self.safe_get(data, ['informacion_vehiculo', 'placa']),
-                    'marca': self.safe_get(data, ['informacion_vehiculo', 'marca']),
-                    'linea': self.safe_get(data, ['informacion_vehiculo', 'linea']),
-                    'modelo': self.safe_get(data, ['informacion_vehiculo', 'modelo']),
-                    'color': self.safe_get(data, ['informacion_vehiculo', 'color']),
-                    'vin': self.safe_get(data, ['informacion_vehiculo', 'vin']),
-                    'numero_motor': self.safe_get(data, ['informacion_vehiculo', 'numero_motor']),
-                    'numero_chasis': self.safe_get(data, ['informacion_vehiculo', 'numero_chasis']),
-                    'cilindrada_cc': self.safe_get(data, ['informacion_vehiculo', 'cilindrada_cc']),
-                    'combustible': self.safe_get(data, ['informacion_vehiculo', 'combustible']),
-                    'servicio': self.safe_get(data, ['informacion_vehiculo', 'servicio']),
-                    'clase_vehiculo': self.safe_get(data, ['informacion_vehiculo', 'clase_vehiculo']),
-                    'tipo_carroceria': self.safe_get(data, ['informacion_vehiculo', 'tipo_carroceria']),
-                    'capacidad_kg_psj': self.safe_get(data, ['informacion_vehiculo', 'capacidad_kg_psj']),
-                    'potencia_hp': self.safe_get(data, ['informacion_vehiculo', 'potencia_hp']),
-                    'puertas': self.safe_get(data, ['informacion_vehiculo', 'puertas'])
-                },
+                'vehiculo': info_vehiculo,
+                'informacion_vehiculo': info_vehiculo,  # Alias para compatibilidad
                 'propietario': {
                     'nombre': self.safe_get(data, ['informacion_propietario', 'nombre']),
-                    'identificacion': self.safe_get(data, ['informacion_propietario', 'identificacion'])
+                    'identificacion': self.safe_get(data, ['informacion_propietario', 'identificacion']),
+                    'direccion': self.safe_get(data, ['informacion_propietario', 'direccion']),
+                    'telefono': self.safe_get(data, ['informacion_propietario', 'telefono']),
+                    'ciudad': self.safe_get(data, ['informacion_propietario', 'ciudad'])
                 },
                 'registro': {
                     'licencia_transito_numero': self.safe_get(data, ['detalles_registro', 'licencia_transito_numero']),

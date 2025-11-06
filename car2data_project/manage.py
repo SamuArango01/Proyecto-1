@@ -10,7 +10,7 @@ sys.path.insert(0, PROJECT_ROOT)
 def main():
     """Run administrative tasks."""
     os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE", "car2data_project.settings.development"
+        "DJANGO_SETTINGS_MODULE", "settings"
     )
     try:
         from django.core.management import execute_from_command_line

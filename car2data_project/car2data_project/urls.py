@@ -13,15 +13,10 @@ urlpatterns = [
     path('dashboard/', include('apps.documents.urls')),
     path('vehicles/', include('apps.vehicles.urls')),
     path('forms/', include('apps.forms_generation.urls')),
-    # Social auth routes (allauth)
-    path('accounts/', include('allauth.socialaccount.providers.google.urls')),
+    # Social auth routes (allauth) - MUST be before general allauth.urls
     path('accounts/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns += [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

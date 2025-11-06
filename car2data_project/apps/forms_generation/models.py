@@ -27,6 +27,22 @@ class GeneratedForm(models.Model):
     def __str__(self):
         return f"Formulario {self.id} - {self.get_form_type_display()}"
 
+    def get_vehicle_display(self):
+        try:
+            data = self.document.get_structured_data()
+            veh = data.get('vehiculo', {}) or {}
+            placa = (veh.get('placa') or '').strip()
+            marca = (veh.get('marca') or '').strip()
+            linea = (veh.get('linea') or '').strip()
+            if placa:
+                return placa
+            label = f"{marca} {linea}".strip()
+            if label:
+                return label
+        except Exception:
+            pass
+        return self.document.name
+
 class ContratoCompraventa(models.Model):
     id_contrato = models.AutoField(primary_key=True)
     id_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, db_column='id_vehiculo')
@@ -87,6 +103,12 @@ class FormularioTramite(models.Model):
     # Datos de importación
     declaracion_importacion = models.CharField(max_length=100, blank=True)
     fecha_importacion = models.CharField(max_length=50, blank=True)
+    
+    # Campos REG para números de identificación
+    reg_numero_motor = models.CharField(max_length=1, blank=True, null=True, help_text="S o N")
+    reg_numero_chasis = models.CharField(max_length=1, blank=True, null=True, help_text="S o N")
+    reg_numero_serie = models.CharField(max_length=1, blank=True, null=True, help_text="S o N")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -13,6 +13,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
+from django.utils.text import slugify
 from .models import GeneratedForm, ContratoMandato, ContratoCompraventa, FormularioTramite
 from .forms import (ContratoMandatoForm, ContratoCompraventaForm, FormularioTramiteForm, 
                    DocumentSelectionForm)
@@ -85,6 +86,8 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'mandante_direccion': extracted_propietario.get('direccion'),
                     'mandante_telefono': extracted_propietario.get('telefono'),
                     'mandante_ciudad': extracted_propietario.get('ciudad'),
+                    # Fecha por defecto: hoy
+                    'fecha_contrato': timezone.now().date().isoformat(),
                 }
                 context['form'] = ContratoMandatoForm(initial=initial_data)
                 
@@ -95,12 +98,16 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'vendedor_direccion': extracted_propietario.get('direccion'),
                     'vendedor_telefono': extracted_propietario.get('telefono'),
                     'vendedor_ciudad': extracted_propietario.get('ciudad'),
+                    # Fecha por defecto: hoy
+                    'fecha_contrato': timezone.now().date().isoformat(),
                 }
                 context['form'] = ContratoCompraventaForm(initial=initial_data)
                 
             elif form_type == 'formulario_tramite':
                 extracted_propietario = context['extracted_data'].get('propietario', {})
                 extracted_registro = context['extracted_data'].get('registro', {})
+                # Preferir 'informacion_vehiculo' (como en data_preview), con fallback a 'vehiculo'
+                extracted_vehiculo = context['extracted_data'].get('informacion_vehiculo') or context['extracted_data'].get('vehiculo', {})
 
                 # Helper para separar nombre completo en apellidos y nombres
                 def split_apellidos_nombres(fullname: str):
@@ -137,8 +144,11 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'potencia': extracted_vehiculo.get('potencia_hp'),
                     'carroceria': extracted_vehiculo.get('tipo_carroceria'),
                     'numero_motor': extracted_vehiculo.get('numero_motor'),
+                    'reg_numero_motor': extracted_vehiculo.get('reg_numero_motor'),
                     'numero_chasis': extracted_vehiculo.get('numero_chasis'),
+                    'reg_numero_chasis': extracted_vehiculo.get('reg_numero_chasis'),
                     'numero_serie': extracted_vehiculo.get('numero_serie'),
+                    'reg_numero_serie': extracted_vehiculo.get('reg_numero_serie'),
                     'numero_vin': extracted_vehiculo.get('vin'),
                     'tipo_servicio': extracted_vehiculo.get('servicio'),
                     'clase_vehiculo': extracted_vehiculo.get('clase_vehiculo'),
@@ -148,14 +158,32 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     'declaracion_importacion': extracted_registro.get('declaracion_importacion'),
                     'fecha_importacion': extracted_registro.get('fecha_importacion'),
                 }
-                
-                # Filtrar claves con valores None o vacíos para no enviar 'None' o '' al formulario
-                initial_data_filtered = {k: v for k, v in initial_data.items() if v is not None and v != ''}
+
+                # Normalizar valores tipo "No disponible"/None/"N/A" a cadena vacía
+                def _normalize_value(v):
+                    try:
+                        if v is None:
+                            return ''
+                        s = str(v).strip()
+                        if s.lower() in ['no disponible', 'n/a', 'na', 'none', 'null', 'sin dato']:
+                            return ''
+                        return s
+                    except Exception:
+                        return ''
+
+                initial_data = {k: _normalize_value(v) for k, v in initial_data.items()}
+
+                # Filtrar claves con valores vacíos para no enviar al formulario
+                initial_data_filtered = {k: v for k, v in initial_data.items() if v != ''}
 
                 # Logging a nivel INFO para que aparezca (y tolerante a fechas)
                 logging.info(f"Extracted Data: {json.dumps(context['extracted_data'], indent=2, ensure_ascii=False, default=str)}")
                 logging.info(f"Initial Data Mapped: {json.dumps(initial_data, indent=2, ensure_ascii=False, default=str)}")
                 logging.info(f"Initial Data Filtered: {json.dumps(initial_data_filtered, indent=2, ensure_ascii=False, default=str)}")
+
+                # Fecha por defecto: hoy, si no viene en los datos iniciales
+                if not initial_data_filtered.get('fecha_tramite'):
+                    initial_data_filtered['fecha_tramite'] = timezone.now().date().isoformat()
 
                 context['form'] = FormularioTramiteForm(initial=initial_data_filtered)
                 
@@ -207,17 +235,21 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     }
                 )
                 
-                # Crear/obtener mandatario
-                mandatario, created = Persona.objects.get_or_create(
-                    numero_documento=form.cleaned_data['mandatario_documento'],
-                    defaults={
-                        'nombre': form.cleaned_data['mandatario_nombre'],
-                        'direccion': form.cleaned_data.get('mandatario_direccion', ''),
-                        'telefono': form.cleaned_data.get('mandatario_telefono', ''),
-                        'ciudad': form.cleaned_data.get('mandatario_ciudad', ''),
-                        'tipo_documento': 'CC'
-                    }
-                )
+                # Crear/obtener mandatario (o usar mandante si no hay mandatario)
+                tiene_mandatario = form.cleaned_data.get('tiene_mandatario')
+                if tiene_mandatario:
+                    mandatario, created = Persona.objects.get_or_create(
+                        numero_documento=form.cleaned_data['mandatario_documento'],
+                        defaults={
+                            'nombre': form.cleaned_data['mandatario_nombre'],
+                            'direccion': form.cleaned_data.get('mandatario_direccion', ''),
+                            'telefono': form.cleaned_data.get('mandatario_telefono', ''),
+                            'ciudad': form.cleaned_data.get('mandatario_ciudad', ''),
+                            'tipo_documento': 'CC'
+                        }
+                    )
+                else:
+                    mandatario = mandante
                 
                 # Crear el contrato
                 contrato = form.save(commit=False)
@@ -226,31 +258,42 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 contrato.id_mandatario = mandatario
                 contrato.save()
                 
+                # Obtener datos extraídos del vehículo
+                extracted_data = document.get_structured_data()
+                vehiculo_data = extracted_data.get('vehiculo', {})
+                
                 # Incluir todos los datos del formulario en el PDF
                 pdf_data = {
                     'mandante': {
-                        'nombre': mandante.nombre,
-                        'documento': mandante.numero_documento,
-                        'direccion': mandante.direccion,
-                        'telefono': mandante.telefono,
-                        'ciudad': mandante.ciudad
+                        'nombre': form.cleaned_data['mandante_nombre'],
+                        'documento': form.cleaned_data['mandante_documento'],
+                        'direccion': form.cleaned_data.get('mandante_direccion', ''),
+                        'telefono': form.cleaned_data.get('mandante_telefono', ''),
+                        'ciudad': form.cleaned_data.get('mandante_ciudad', '')
                     },
-                    'mandatario': {
-                        'nombre': mandatario.nombre,
-                        'documento': mandatario.numero_documento,
-                        'direccion': mandatario.direccion,
-                        'telefono': mandatario.telefono,
-                        'ciudad': mandatario.ciudad
-                    },
-                    'vehiculo': {
-                        'placa': vehiculo.placa if vehiculo else ''
-                    },
+                    'mandatario': ({
+                        'nombre': form.cleaned_data['mandatario_nombre'],
+                        'documento': form.cleaned_data['mandatario_documento'],
+                        'direccion': form.cleaned_data.get('mandatario_direccion', ''),
+                        'telefono': form.cleaned_data.get('mandatario_telefono', ''),
+                        'ciudad': form.cleaned_data.get('mandatario_ciudad', '')
+                    } if tiene_mandatario else {
+                        'nombre': '',
+                        'documento': '',
+                        'direccion': '',
+                        'telefono': '',
+                        'ciudad': ''
+                    }),
+                    'vehiculo': vehiculo_data,  # Datos completos del vehículo extraídos
+                    'placa': vehiculo.placa if vehiculo else vehiculo_data.get('placa', ''),
                     'contrato_id': contrato.id_contrato,
                     'tramites_autorizados': form.cleaned_data.get('tramites_autorizados', ''),
-                    'organismo_transito': form.cleaned_data.get('organismo_transito', ''),
+                    'organismo_transito': form.cleaned_data.get('organismo_transito', '') or extracted_data.get('registro', {}).get('organismo_transito', ''),
                     'ciudad_contrato': form.cleaned_data.get('ciudad_contrato', ''),
                     'fecha_contrato': form.cleaned_data.get('fecha_contrato')
                 }
+                
+                logger.info(f"Datos para PDF de contrato de mandato: {pdf_data}")
                 
                 # Generar PDF con todos los datos
                 success = self._generate_pdf_document(document, 'contrato_mandato', pdf_data)
@@ -346,12 +389,19 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                 logger.info(f"Datos del vendedor para el PDF: {vendedor_info}")
                 logger.info(f"Datos del comprador para el PDF: {comprador_info}")
                 
+                # Obtener organismo de tránsito de los datos extraídos
+                extracted_data = document.get_structured_data()
+                organismo_transito = extracted_data.get('registro', {}).get('organismo_transito', '')
+                
                 # Generar PDF
                 success = self._generate_pdf_document(document, 'contrato_compraventa', {
                     'vendedor': vendedor_info,
                     'comprador': comprador_info,
                     'valor_venta': contrato.valor_venta,
                     'forma_pago': form.cleaned_data.get('forma_pago', ''),
+                    'ciudad_contrato': form.cleaned_data.get('ciudad_contrato', ''),
+                    'fecha_contrato': form.cleaned_data.get('fecha_contrato'),
+                    'organismo_transito': organismo_transito,
                     'contrato_id': contrato.id_contrato
                 })
                 
@@ -384,7 +434,8 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
             try:
                 # 1. Cargar datos extraídos originalmente como base
                 extracted_data = document.get_structured_data()
-                extracted_vehiculo = extracted_data.get('vehiculo', {})
+                # Preferir 'informacion_vehiculo' (como en data_preview), con fallback a 'vehiculo'
+                extracted_vehiculo = extracted_data.get('informacion_vehiculo') or extracted_data.get('vehiculo', {})
                 extracted_propietario = extracted_data.get('propietario', {})
                 extracted_registro = extracted_data.get('registro', {})
 
@@ -404,32 +455,47 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
 
                 ap1, ap2, nombres = split_apellidos_nombres(extracted_propietario.get('nombre'))
 
+                # Normalizador reutilizable
+                def _normalize_value(v):
+                    try:
+                        if v is None:
+                            return ''
+                        s = str(v).strip()
+                        if s.lower() in ['no disponible', 'n/a', 'na', 'none', 'null', 'sin dato']:
+                            return ''
+                        return s
+                    except Exception:
+                        return ''
+
                 base_data = {
                     'placa': extracted_vehiculo.get('placa'),
-                    'marca': extracted_vehiculo.get('marca'),
-                    'linea': extracted_vehiculo.get('linea'),
-                    'color': extracted_vehiculo.get('color'),
-                    'modelo': extracted_vehiculo.get('modelo'),
-                    'cilindrada': extracted_vehiculo.get('cilindrada_cc'),
-                    'capacidad': extracted_vehiculo.get('capacidad_kg_psj'),
-                    'potencia': extracted_vehiculo.get('potencia_hp'),
-                    'carroceria': extracted_vehiculo.get('tipo_carroceria'),
-                    'numero_motor': extracted_vehiculo.get('numero_motor'),
-                    'numero_chasis': extracted_vehiculo.get('numero_chasis'),
-                    'numero_serie': extracted_vehiculo.get('numero_serie'),
-                    'numero_vin': extracted_vehiculo.get('vin'),
-                    'tipo_servicio': extracted_vehiculo.get('servicio'),
-                    'clase_vehiculo': extracted_vehiculo.get('clase_vehiculo'),
-                    'combustible': extracted_vehiculo.get('combustible'),
+                    'marca': _normalize_value(extracted_vehiculo.get('marca')),
+                    'linea': _normalize_value(extracted_vehiculo.get('linea')),
+                    'color': _normalize_value(extracted_vehiculo.get('color')),
+                    'modelo': _normalize_value(extracted_vehiculo.get('modelo')),
+                    'cilindrada': _normalize_value(extracted_vehiculo.get('cilindrada_cc')),
+                    'capacidad': _normalize_value(extracted_vehiculo.get('capacidad_kg_psj')),
+                    'potencia': _normalize_value(extracted_vehiculo.get('potencia_hp')),
+                    'carroceria': _normalize_value(extracted_vehiculo.get('tipo_carroceria')),
+                    'numero_motor': _normalize_value(extracted_vehiculo.get('numero_motor')),
+                    'reg_numero_motor': _normalize_value(extracted_vehiculo.get('reg_numero_motor')),
+                    'numero_chasis': _normalize_value(extracted_vehiculo.get('numero_chasis')),
+                    'reg_numero_chasis': _normalize_value(extracted_vehiculo.get('reg_numero_chasis')),
+                    'numero_serie': _normalize_value(extracted_vehiculo.get('numero_serie')),
+                    'reg_numero_serie': _normalize_value(extracted_vehiculo.get('reg_numero_serie')),
+                    'numero_vin': _normalize_value(extracted_vehiculo.get('vin')),
+                    'tipo_servicio': _normalize_value(extracted_vehiculo.get('servicio')),
+                    'clase_vehiculo': _normalize_value(extracted_vehiculo.get('clase_vehiculo')),
+                    'combustible': _normalize_value(extracted_vehiculo.get('combustible')),
                     # Propietario (separado automáticamente)
                     'propietario_primer_apellido': ap1,
                     'propietario_segundo_apellido': ap2,
                     'propietario_nombres': nombres,
-                    'propietario_documento': extracted_propietario.get('identificacion'),
+                    'propietario_documento': _normalize_value(extracted_propietario.get('identificacion')),
 
                     # Datos de importación
-                    'declaracion_importacion': extracted_registro.get('declaracion_importacion'),
-                    'fecha_importacion': extracted_registro.get('fecha_importacion'),
+                    'declaracion_importacion': _normalize_value(extracted_registro.get('declaracion_importacion')),
+                    'fecha_importacion': _normalize_value(extracted_registro.get('fecha_importacion')),
                 }
 
                 # 2. Combinar con datos del formulario (los datos del form tienen prioridad)
@@ -528,14 +594,30 @@ class GenerateFormView(LoginRequiredMixin, TemplateView):
                     file_path
                 )
             elif form_type == 'contrato_compraventa':
-                success = generator.generate_contrato_compraventa(
-                    extracted_data,  # Pasar todo el diccionario de datos extraídos
-                    additional_data.get('vendedor', {}),
-                    additional_data.get('comprador', {}),
-                    additional_data.get('valor_venta'),
-                    file_path,
-                    additional_data.get('forma_pago')
-                )
+                # Construir payload completo y llamar directamente al PDFFormFiller
+                from services.PdfFormFiller import PDFFormFiller
+                vehiculo = extracted_data.get('vehiculo', {})
+                vendedor = additional_data.get('vendedor', {})
+                comprador = additional_data.get('comprador', {})
+                valor_venta = additional_data.get('valor_venta')
+                forma_pago = additional_data.get('forma_pago')
+                ciudad_contrato = additional_data.get('ciudad_contrato')
+                fecha_contrato = additional_data.get('fecha_contrato')
+                organismo_transito = additional_data.get('organismo_transito') or extracted_data.get('registro', {}).get('organismo_transito')
+
+                form_data = {
+                    'vehiculo': vehiculo,
+                    'vendedor': vendedor,
+                    'comprador': comprador,
+                    'valor_venta': valor_venta,
+                    'forma_pago': forma_pago,
+                    'ciudad_contrato': ciudad_contrato,
+                    'fecha_contrato': fecha_contrato,
+                    'organismo_transito': organismo_transito,
+                }
+
+                filler = PDFFormFiller()
+                success = filler.fill_pdf_form('contrato_compraventa', form_data, file_path)
             elif form_type == 'formulario_tramite':
                 # Los datos completos vienen del formulario en additional_data
                 logger.info(f"Datos del formulario para PDF: {additional_data}")
@@ -595,7 +677,29 @@ class DownloadPDFView(LoginRequiredMixin, TemplateView):
             
             with open(file_path, 'rb') as pdf_file:
                 response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-                filename = os.path.basename(file_path)
+                # Construir nombre: tipodedocumento_placa.pdf
+                try:
+                    # Tipo de documento legible
+                    tipo_doc = slugify(generated_form.get_form_type_display()) or 'documento'
+                except Exception:
+                    tipo_doc = 'documento'
+
+                # Extraer placa desde los datos estructurados del documento
+                placa = 'sin_placa'
+                try:
+                    data = generated_form.document.get_structured_data()
+                    veh = (data or {}).get('vehiculo', {}) or {}
+                    raw_placa = (veh.get('placa') or '').strip()
+                    if raw_placa:
+                        # Normalizar placa: solo letras/números, mayúsculas
+                        import re
+                        placa_clean = re.sub(r'[^A-Za-z0-9]', '', raw_placa).upper()
+                        if placa_clean:
+                            placa = placa_clean
+                except Exception:
+                    pass
+
+                filename = f"{tipo_doc}_{placa}.pdf"
                 response['Content-Disposition'] = f'attachment; filename="{filename}"'
                 return response
                 
@@ -623,6 +727,24 @@ class FormHistoryView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['active_tab'] = 'history'
+        
+        # ✅ AGREGAR INFORMACIÓN DE SUSCRIPCIÓN PARA BLOQUEO
+        try:
+            subscription = self.request.user.subscription
+            context['subscription'] = subscription
+            context['documents_used'] = subscription.documents_used
+            context['documents_limit'] = subscription.get_documents_limit()
+            context['documents_remaining'] = subscription.get_remaining_documents()
+            context['can_upload'] = subscription.can_generate_document()
+            context['plan_name'] = subscription.get_plan_display()
+        except:
+            context['subscription'] = None
+            context['documents_used'] = 0
+            context['documents_limit'] = 3
+            context['documents_remaining'] = 3
+            context['can_upload'] = True
+            context['plan_name'] = 'Starter'
+        
         return context
 
 class DeleteGeneratedFormView(LoginRequiredMixin, View):

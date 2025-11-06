@@ -3,29 +3,87 @@
 {% block title %}Mi Perfil{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Mi Perfil</h1>
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <form method="post">
-            {% csrf_token %}
-            <div class="space-y-4">
-                <div>
-                    <label for="id_first_name" class="block text-sm font-medium text-gray-700">Nombre</label>
-                    {{ form.first_name }}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-dark-blue">Mi Perfil</h1>
+        <p class="text-sm sm:text-base text-gray-600 mt-1">Gestiona tu información personal</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Summary card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center gap-4">
+                    <div class="h-14 w-14 rounded-full bg-gradient-to-br from-dark-blue to-turquoise text-white flex items-center justify-center text-lg font-bold">
+                        {{ request.user.first_name|default:request.user.username|slice:":1" }}
+                    </div>
+                    <div>
+                        <div class="text-base font-semibold text-gray-900">{{ request.user.get_full_name|default:request.user.username }}</div>
+                        <div class="text-sm text-gray-500">{{ request.user.email }}</div>
+                    </div>
                 </div>
-                <div>
-                    <label for="id_last_name" class="block text-sm font-medium text-gray-700">Apellidos</label>
-                    {{ form.last_name }}
-                </div>
-                <div>
-                    <label for="id_email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                    {{ form.email }}
+                <div class="mt-5 text-xs text-gray-500">
+                    Miembro desde {{ request.user.date_joined|date:"d M Y" }}
                 </div>
             </div>
-            <div class="mt-6">
-                <button type="submit" class="btn-primary">Guardar Cambios</button>
+
+            <!-- Plan info card -->
+            <div class="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <h3 class="text-sm font-semibold text-gray-900 mb-2">Tu Plan</h3>
+                <div class="text-2xl font-bold text-dark-blue mb-1">{{ plan_name }}</div>
+                <div class="text-sm text-gray-600 mb-4">
+                    {{ documents_used }}/{{ documents_limit }} documentos usados
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
+                    {% with used=documents_used limit=documents_limit %}
+                        {% if limit %}
+                            {% widthratio used limit 100 as pct %}
+                            <div class="h-2 rounded-full bg-gradient-to-r from-turquoise to-dark-blue" style="width: {{ pct }}%"></div>
+                        {% else %}
+                            <div class="h-2 rounded-full bg-gradient-to-r from-turquoise to-dark-blue" style="width: 0%"></div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="text-xs text-gray-500 mb-4">Te quedan {{ documents_remaining }} documentos.</div>
+                <div class="flex gap-2">
+                    {% if not can_upload %}
+                        <a href="{% url 'authentication:checkout' %}" class="inline-flex items-center px-3 py-2 rounded-lg text-white bg-gradient-to-r from-red-500 to-orange hover:shadow-md transition-all text-sm">Mejorar a Pro</a>
+                    {% else %}
+                        <a href="{% url 'authentication:checkout' %}" class="inline-flex items-center px-3 py-2 rounded-lg text-white bg-gradient-to-r from-dark-blue to-turquoise hover:shadow-md transition-all text-sm">Cambiar de Plan</a>
+                    {% endif %}
+                </div>
             </div>
-        </form>
+        </div>
+
+        <!-- Form card -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Información personal</h2>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div>
+                            <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-gradient-to-r from-dark-blue to-turquoise hover:shadow-md transition-all">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

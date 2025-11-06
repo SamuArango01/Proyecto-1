@@ -72,25 +72,25 @@
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-white">
+<body class="bg-white" x-data="{ mobileMenu: false }">
 <div class="min-h-screen flex flex-col">
 
   {% if user.is_authenticated %}
-  <!-- Header moderno -->
+  <!-- Header moderno responsive -->
   <header class="bg-gray-50 shadow-sm border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 sm:space-x-4">
           <div class="flex-shrink-0">
-            <div class="h-24 w-24 rounded-lg flex items-center justify-center">
-              <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-24 w-24">
+            <div class="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 rounded-lg flex items-center justify-center">
+              <img src="{% static 'images/logo.png' %}" alt="Car2Data Logo" class="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24">
             </div>
           </div>
-          <h1 class="text-xl font-bold text-gray-900">Car2Data</h1>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900">Car2Data</h1>
         </div>
 
-        <!-- Navbar -->
+        <!-- Desktop Navbar -->
         <nav class="hidden md:flex space-x-8">
           <!-- Dashboard -->
           <a href="{% url 'documents:dashboard' %}" class="nav-link flex items-center space-x-1 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -107,7 +107,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
-            <span>Historial de Documentos</span>
+            <span>Documentos Procesados</span>
           </a>
           
           <!-- Formularios Generados -->
@@ -115,36 +115,83 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
-            <span>Formularios</span>
+            <span>Documentos Generados</span>
           </a>
         </nav>
 
-        <!-- Perfil y logout -->
-        <div class="relative" x-data="{ open: false }">
-          <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-dark-blue transition-colors duration-200 transform hover:scale-105">
-            <div class="h-8 w-8 bg-dark-blue rounded-full flex items-center justify-center">
-              <span class="text-white text-sm font-medium">{{ user.username|first|upper }}</span>
-            </div>
-            <span class="hidden md:block text-sm font-medium">{{ user.username }}</span>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        <!-- Mobile menu button -->
+        <div class="flex items-center space-x-2">
+          <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded-md text-gray-700 hover:text-dark-blue hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-turquoise">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path x-show="!mobileMenu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              <path x-show="mobileMenu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
 
-          <!-- Dropdown Menu -->
-          <div x-show="open" @click.away="open = false" 
-               x-transition:enter="transition ease-out duration-200" 
-               x-transition:enter-start="opacity-0 transform scale-95" 
-               x-transition:enter-end="opacity-100 transform scale-100" 
-               x-transition:leave="transition ease-in duration-75" 
-               x-transition:leave-start="opacity-100 transform scale-100" 
-               x-transition:leave-end="opacity-0 transform scale-95" 
-               class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5">
-            <a href="{% url 'authentication:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mi Perfil</a>
-            <a href="{% url 'authentication:settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configuración</a>
-            <div class="border-t border-gray-100"></div>
-            <a href="{% url 'authentication:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Cerrar Sesión</a>
+          <!-- Perfil y logout -->
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-dark-blue transition-colors duration-200 transform hover:scale-105">
+              <div class="h-8 w-8 bg-dark-blue rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-medium">{{ user.username|first|upper }}</span>
+              </div>
+              <span class="hidden lg:block text-sm font-medium">{{ user.username }}</span>
+              <svg class="h-4 w-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open" @click.away="open = false" 
+                 x-transition:enter="transition ease-out duration-200" 
+                 x-transition:enter-start="opacity-0 transform scale-95" 
+                 x-transition:enter-end="opacity-100 transform scale-100" 
+                 x-transition:leave="transition ease-in duration-75" 
+                 x-transition:leave-start="opacity-100 transform scale-100" 
+                 x-transition:leave-end="opacity-0 transform scale-95" 
+                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5">
+              <a href="{% url 'authentication:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mi Perfil</a>
+              <a href="{% url 'authentication:settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configuración</a>
+              <div class="border-t border-gray-100"></div>
+              <a href="{% url 'authentication:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Cerrar Sesión</a>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div x-show="mobileMenu" 
+           x-transition:enter="transition ease-out duration-200" 
+           x-transition:enter-start="opacity-0 transform -translate-y-2" 
+           x-transition:enter-end="opacity-100 transform translate-y-0" 
+           x-transition:leave="transition ease-in duration-150" 
+           x-transition:leave-start="opacity-100 transform translate-y-0" 
+           x-transition:leave-end="opacity-0 transform -translate-y-2" 
+           class="md:hidden border-t border-gray-200">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          <a href="{% url 'documents:dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-dark-blue hover:bg-gray-100 {% if request.resolver_match.url_name == 'dashboard' %}bg-gray-100 text-dark-blue{% endif %}">
+            <div class="flex items-center space-x-2">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+              </svg>
+              <span>Dashboard</span>
+            </div>
+          </a>
+          <a href="{% url 'documents:history' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-dark-blue hover:bg-gray-100 {% if request.resolver_match.url_name == 'history' and 'documents' in request.resolver_match.namespaces %}bg-gray-100 text-dark-blue{% endif %}">
+            <div class="flex items-center space-x-2">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <span>Historial de Documentos</span>
+            </div>
+          </a>
+          <a href="{% url 'forms_generation:history' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-dark-blue hover:bg-gray-100 {% if 'forms_generation' in request.resolver_match.namespaces and request.resolver_match.url_name == 'history' %}bg-gray-100 text-dark-blue{% endif %}">
+            <div class="flex items-center space-x-2">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>Formularios</span>
+            </div>
+          </a>
         </div>
       </div>
     </div>
@@ -190,6 +237,286 @@
     {% block content %}{% endblock %}
   </main>
 </div>
+
+<!-- Motion One - Animation Library -->
+<script src="https://cdn.jsdelivr.net/npm/motion@11.3.0/dist/motion.js"></script>
+
+<!-- Car2Data Professional Animations System -->
+<script>
+  // Esperar a que Motion One esté disponible
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof motion === 'undefined') return;
+    
+    const { animate, stagger, inView, scroll } = motion;
+    
+    // ========================================
+    // 1. FADE IN ANIMATIONS (Elementos que aparecen)
+    // ========================================
+    const fadeElements = document.querySelectorAll('[data-animate="fade-in"]');
+    fadeElements.forEach((el, index) => {
+      animate(
+        el,
+        { opacity: [0, 1], y: [20, 0] },
+        { 
+          duration: 0.6,
+          delay: index * 0.1,
+          easing: [0.22, 1, 0.36, 1] // Easing profesional
+        }
+      );
+    });
+    
+    // ========================================
+    // 2. SLIDE IN ANIMATIONS (Desde los lados)
+    // ========================================
+    const slideLeftElements = document.querySelectorAll('[data-animate="slide-left"]');
+    slideLeftElements.forEach((el, index) => {
+      animate(
+        el,
+        { opacity: [0, 1], x: [-30, 0] },
+        { 
+          duration: 0.7,
+          delay: index * 0.15,
+          easing: [0.22, 1, 0.36, 1]
+        }
+      );
+    });
+    
+    const slideRightElements = document.querySelectorAll('[data-animate="slide-right"]');
+    slideRightElements.forEach((el, index) => {
+      animate(
+        el,
+        { opacity: [0, 1], x: [30, 0] },
+        { 
+          duration: 0.7,
+          delay: index * 0.15,
+          easing: [0.22, 1, 0.36, 1]
+        }
+      );
+    });
+    
+    // ========================================
+    // 3. SCALE ANIMATIONS (Zoom suave)
+    // ========================================
+    const scaleElements = document.querySelectorAll('[data-animate="scale"]');
+    scaleElements.forEach((el, index) => {
+      animate(
+        el,
+        { opacity: [0, 1], scale: [0.9, 1] },
+        { 
+          duration: 0.5,
+          delay: index * 0.1,
+          easing: [0.34, 1.56, 0.64, 1] // Bounce suave
+        }
+      );
+    });
+    
+    // ========================================
+    // 4. STAGGER ANIMATIONS (Secuencias)
+    // ========================================
+    const staggerGroups = document.querySelectorAll('[data-animate="stagger"]');
+    staggerGroups.forEach(group => {
+      const children = group.children;
+      animate(
+        Array.from(children),
+        { opacity: [0, 1], y: [15, 0] },
+        { 
+          duration: 0.5,
+          delay: stagger(0.08),
+          easing: [0.22, 1, 0.36, 1]
+        }
+      );
+    });
+    
+    // ========================================
+    // 5. SCROLL-TRIGGERED ANIMATIONS (Aparecen al hacer scroll)
+    // ========================================
+    const scrollElements = document.querySelectorAll('[data-scroll="fade-up"]');
+    scrollElements.forEach(el => {
+      // Inicialmente invisible
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      
+      inView(el, ({ target }) => {
+        animate(
+          target,
+          { opacity: [0, 1], y: [30, 0] },
+          { 
+            duration: 0.8,
+            easing: [0.22, 1, 0.36, 1]
+          }
+        );
+      }, { amount: 0.3 }); // Activa cuando 30% es visible
+    });
+    
+    // ========================================
+    // 6. HOVER ANIMATIONS (Interactividad suave)
+    // ========================================
+    const hoverCards = document.querySelectorAll('[data-hover="lift"]');
+    hoverCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        animate(
+          card,
+          { y: -8, scale: 1.02 },
+          { duration: 0.3, easing: [0.22, 1, 0.36, 1] }
+        );
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        animate(
+          card,
+          { y: 0, scale: 1 },
+          { duration: 0.3, easing: [0.22, 1, 0.36, 1] }
+        );
+      });
+    });
+    
+    // ========================================
+    // 7. BUTTON PRESS ANIMATIONS
+    // ========================================
+    const buttons = document.querySelectorAll('[data-animate="button"]');
+    buttons.forEach(btn => {
+      btn.addEventListener('mousedown', () => {
+        animate(btn, { scale: 0.95 }, { duration: 0.1 });
+      });
+      
+      btn.addEventListener('mouseup', () => {
+        animate(btn, { scale: 1 }, { duration: 0.2, easing: [0.34, 1.56, 0.64, 1] });
+      });
+    });
+    
+    // ========================================
+    // 8. PROGRESS BARS (Animación de carga)
+    // ========================================
+    const progressBars = document.querySelectorAll('[data-animate="progress"]');
+    progressBars.forEach(bar => {
+      const targetWidth = bar.dataset.progress || '100%';
+      inView(bar, ({ target }) => {
+        animate(
+          target,
+          { width: ['0%', targetWidth] },
+          { duration: 1.2, easing: [0.22, 1, 0.36, 1] }
+        );
+      }, { amount: 0.5 });
+    });
+    
+    // ========================================
+    // 9. NUMBER COUNTER ANIMATIONS
+    // ========================================
+    const counters = document.querySelectorAll('[data-animate="counter"]');
+    counters.forEach(counter => {
+      const target = parseFloat(counter.dataset.target);
+      const suffix = counter.dataset.suffix || '';
+      
+      inView(counter, () => {
+        animate(
+          (progress) => {
+            counter.textContent = Math.floor(progress * target) + suffix;
+          },
+          { duration: 2, easing: [0.22, 1, 0.36, 1] }
+        );
+      }, { amount: 0.5 });
+    });
+    
+    // ========================================
+    // 10. MODAL/DIALOG ANIMATIONS
+    // ========================================
+    const modals = document.querySelectorAll('[data-animate="modal"]');
+    modals.forEach(modal => {
+      const backdrop = modal.querySelector('[data-modal="backdrop"]');
+      const content = modal.querySelector('[data-modal="content"]');
+      
+      if (backdrop && content) {
+        // Animación de entrada
+        animate(backdrop, { opacity: [0, 1] }, { duration: 0.3 });
+        animate(
+          content,
+          { opacity: [0, 1], scale: [0.9, 1], y: [20, 0] },
+          { duration: 0.4, delay: 0.1, easing: [0.34, 1.56, 0.64, 1] }
+        );
+      }
+    });
+    
+    // ========================================
+    // 11. PAGE TRANSITION (Transiciones entre páginas)
+    // ========================================
+    const mainContent = document.querySelector('main');
+    if (mainContent && !sessionStorage.getItem('pageLoaded')) {
+      animate(
+        mainContent,
+        { opacity: [0, 1] },
+        { duration: 0.5, easing: 'ease-out' }
+      );
+      sessionStorage.setItem('pageLoaded', 'true');
+    }
+    
+    // ========================================
+    // 12. NAVBAR SCROLL EFFECT
+    // ========================================
+    const header = document.querySelector('header');
+    if (header) {
+      let lastScroll = 0;
+      
+      window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        
+        // Add shadow on scroll
+        if (currentScroll > 10) {
+          header.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+        } else {
+          header.style.boxShadow = 'none';
+        }
+        
+        lastScroll = currentScroll;
+      });
+    }
+    
+    // ========================================
+    // 13. FORM INPUT ANIMATIONS
+    // ========================================
+    const formInputs = document.querySelectorAll('input, textarea, select');
+    formInputs.forEach(input => {
+      input.addEventListener('focus', (e) => {
+        const parent = e.target.closest('.form-group, div');
+        if (parent) {
+          animate(
+            parent,
+            { scale: [1, 1.02, 1] },
+            { duration: 0.3 }
+          );
+        }
+      });
+    });
+    
+    // ========================================
+    // 14. NOTIFICATION/TOAST ANIMATIONS
+    // ========================================
+    const toasts = document.querySelectorAll('[role="alert"], .alert');
+    toasts.forEach((toast, index) => {
+      animate(
+        toast,
+        { opacity: [0, 1], x: [100, 0] },
+        { 
+          duration: 0.5,
+          delay: index * 0.1,
+          easing: [0.34, 1.56, 0.64, 1]
+        }
+      );
+    });
+    
+    // ========================================
+    // 15. PARALLAX SCROLL EFFECT (Secciones)
+    // ========================================
+    const parallaxElements = document.querySelectorAll('[data-parallax]');
+    parallaxElements.forEach(el => {
+      scroll(
+        animate(el, { y: [0, 100] }),
+        { target: el, offset: ['start end', 'end start'] }
+      );
+    });
+    
+  });
+</script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

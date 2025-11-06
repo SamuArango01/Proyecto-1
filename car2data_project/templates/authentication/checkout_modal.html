@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mejorar a Pro - Car2Data</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-blue': '#003366',
+                        'turquoise': '#00CED1',
+                        'orange': '#FF6F00',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Motion One -->
+    <script src="https://cdn.jsdelivr.net/npm/motion@11.3.0/dist/motion.js"></script>
+    
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 20px 60px rgba(0, 206, 209, 0.1);
+            transform: translateZ(0);
+        }
+        
+        .glass-card:hover {
+            box-shadow: 
+                0 12px 48px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 25px 80px rgba(0, 206, 209, 0.15);
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #003366, #00CED1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: #1f2937;
+        }
+        
+        .price-display {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #003366, #00CED1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .payment-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #003366, #00CED1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .payment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 206, 209, 0.3);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 51, 102, 0.85); /* dark-blue con transparencia */
+            backdrop-filter: blur(12px) saturate(150%) brightness(0.8);
+            z-index: 9999;
+            overflow-y: auto;
+            animation: overlay-fade-in 0.4s ease-out;
+        }
+        
+        @keyframes overlay-fade-in {
+            from {
+                background: rgba(0, 51, 102, 0);
+                backdrop-filter: blur(0px);
+            }
+            to {
+                background: rgba(0, 51, 102, 0.85);
+                backdrop-filter: blur(12px) saturate(150%) brightness(0.8);
+            }
+        }
+        
+        .modal-content {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+        
+        /* Animaciones de entrada */
+        @keyframes card-float-in {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .glass-card {
+            animation: card-float-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .glass-card:nth-child(1) {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+        
+        .glass-card:nth-child(2) {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+        
+        /* Efecto de profundidad en header */
+        .header-content {
+            text-shadow: 
+                0 2px 10px rgba(0, 0, 0, 0.3),
+                0 4px 20px rgba(0, 206, 209, 0.2);
+        }
+        
+        /* Mejora visual del contenedor principal */
+        .checkout-container {
+            perspective: 1000px;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="max-w-6xl mx-auto w-full relative">
+                <!-- Botón cerrar -->
+                <button onclick="window.history.back()" class="close-btn">
+                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                <!-- Header -->
+                <div class="text-center mb-8 header-content">
+                    <h1 class="text-4xl md:text-5xl font-black text-white mb-4">
+                        ¡Mejora a <span class="text-turquoise">Pro</span>!
+                    </h1>
+                    <p class="text-xl text-white/80">Desbloquea 100 documentos al mes</p>
+                    {% if documents_used %}
+                    <p class="text-lg text-white/60 mt-2">Has usado {{ documents_used }} de {{ documents_limit }} documentos gratis</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 checkout-container">
+                    <!-- Plan Summary -->
+                    <div class="glass-card rounded-2xl p-8">
+                        <div class="inline-block px-4 py-2 bg-gradient-to-r from-dark-blue to-turquoise text-white rounded-full text-sm font-bold mb-6">
+                            {{ plan_name }}
+                        </div>
+                        
+                        <div class="price-display mb-6">
+                            ${{ plan_price }}<span class="text-2xl font-medium text-gray-600">/mes</span>
+                        </div>
+                        
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Características incluidas:</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                                <span><strong>100 documentos/mes</strong></span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                                <span>Generación de formularios</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                                <span>Validaciones automáticas</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                                <span>Soporte prioritario</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 p-4 bg-turquoise/10 rounded-lg border-2 border-turquoise">
+                            <p class="text-sm text-gray-700 text-center">
+                                <i class="fas fa-shield-alt text-turquoise mr-2"></i>
+                                Cancela cuando quieras, sin compromisos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <div class="glass-card rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Información de Pago</h3>
+                        
+                        {% if messages %}
+                        <div class="mb-6">
+                            {% for message in messages %}
+                            <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'authentication:checkout' %}" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nombre del titular
+                                </label>
+                                <input
+                                    type="text"
+                                    name="card_name"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-transparent"
+                                    placeholder="Juan Pérez"
+                                    required
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Número de tarjeta
+                                </label>
+                                <input
+                                    type="text"
+                                    name="card_number"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-transparent"
+                                    placeholder="1234 5678 9012 3456"
+                                    maxlength="19"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Fecha de expiración
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="card_expiry"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-transparent"
+                                        placeholder="MM/AA"
+                                        maxlength="5"
+                                        required
+                                    >
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        CVV
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="card_cvv"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-transparent"
+                                        placeholder="123"
+                                        maxlength="4"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <button type="submit" class="payment-btn">
+                                <i class="fas fa-lock"></i>
+                                Mejorar a Pro - ${{ plan_price }}/mes
+                            </button>
+                            
+                            <div class="text-center text-sm text-gray-500 mt-4">
+                                <i class="fas fa-shield-alt text-turquoise"></i>
+                                <span class="ml-2">Pago 100% seguro y encriptado</span>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-6 text-center">
+                            <button onclick="window.history.back()" class="text-gray-600 hover:text-gray-900 text-sm underline">
+                                Volver al dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Animaciones con Motion One
+        document.addEventListener('DOMContentLoaded', function() {
+            const { animate, stagger } = Motion;
+            
+            // Animar entrada del modal
+            animate('.modal-overlay', {
+                opacity: [0, 1]
+            }, { duration: 0.3 });
+            
+            animate('.modal-content > div', {
+                opacity: [0, 1],
+                scale: [0.9, 1]
+            }, { duration: 0.5, delay: 0.2 });
+            
+            // Animar features
+            animate('.feature-item', {
+                opacity: [0, 1],
+                x: [-20, 0]
+            }, { duration: 0.4, delay: stagger(0.1, { start: 0.6 }) });
+        });
+        
+        // Formatear número de tarjeta
+        document.querySelector('input[name="card_number"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+        
+        // Formatear fecha de expiración
+        document.querySelector('input[name="card_expiry"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // Solo números en CVV
+        document.querySelector('input[name="card_cvv"]').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    </script>
+</body>
+</html>

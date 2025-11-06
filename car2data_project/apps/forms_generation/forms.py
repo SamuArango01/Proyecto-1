@@ -5,6 +5,15 @@ from .models import ContratoCompraventa, ContratoMandato, FormularioTramite
 from apps.vehicles.models import Persona, Vehiculo
 
 class ContratoMandatoForm(forms.ModelForm):
+    tiene_mandatario = forms.BooleanField(
+        required=False,
+        label="Tiene mandatario",
+        initial=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-turquoise border-gray-300 rounded',
+            'onclick': 'toggleMandatarioSection(this.checked)'
+        })
+    )
     # Campos para el mandante
     mandante_nombre = forms.CharField(
         max_length=100,
@@ -53,6 +62,7 @@ class ContratoMandatoForm(forms.ModelForm):
     # Campos para el mandatario
     mandatario_nombre = forms.CharField(
         max_length=100,
+        required=False,
         label="Nombre del Mandatario",
         widget=forms.TextInput(attrs={
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-turquoise',
@@ -61,6 +71,7 @@ class ContratoMandatoForm(forms.ModelForm):
     )
     mandatario_documento = forms.CharField(
         max_length=20,
+        required=False,
         label="Documento del Mandatario",
         widget=forms.TextInput(attrs={
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-turquoise focus:border-turquoise',
@@ -209,6 +220,44 @@ class ContratoCompraventaForm(forms.ModelForm):
         })
     )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        required_vendedor_fields = {
+            'vendedor_nombre': 'Nombre del Vendedor',
+            'vendedor_documento': 'Documento del Vendedor',
+            'vendedor_direccion': 'Dirección del Vendedor',
+            'vendedor_telefono': 'Teléfono del Vendedor',
+            'vendedor_ciudad': 'Ciudad del Vendedor',
+        }
+
+        required_comprador_fields = {
+            'comprador_nombre': 'Nombre del Comprador',
+            'comprador_documento': 'Documento del Comprador',
+            'comprador_direccion': 'Dirección del Comprador',
+            'comprador_telefono': 'Teléfono del Comprador',
+            'comprador_ciudad': 'Ciudad del Comprador',
+        }
+
+        missing_any = False
+        # Vendedor
+        for field_name, label in required_vendedor_fields.items():
+            value = cleaned_data.get(field_name)
+            if not value or (isinstance(value, str) and not value.strip()):
+                self.add_error(field_name, 'Este campo es obligatorio.')
+                missing_any = True
+
+        # Comprador
+        for field_name, label in required_comprador_fields.items():
+            value = cleaned_data.get(field_name)
+            if not value or (isinstance(value, str) and not value.strip()):
+                self.add_error(field_name, 'Este campo es obligatorio.')
+                missing_any = True
+
+        if missing_any:
+            raise forms.ValidationError('Por favor completa todos los datos del vendedor y del comprador antes de continuar.')
+
+        return cleaned_data
+
     class Meta:
         model = ContratoCompraventa
         fields = ['valor_venta', 'valor_venta_letras', 'forma_pago', 'ciudad_contrato', 'fecha_contrato']
@@ -267,8 +316,26 @@ class FormularioTramiteForm(forms.ModelForm):
     potencia = forms.CharField(max_length=10, label="Potencia", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
     carroceria = forms.CharField(max_length=50, label="Carrocería", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
     numero_motor = forms.CharField(max_length=50, label="Número de Motor", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    reg_numero_motor = forms.ChoiceField(
+        choices=[('', 'Seleccionar'), ('S', 'S - Sí'), ('N', 'N - No')],
+        label="REG Número de Motor",
+        required=False,
+        widget=forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'})
+    )
     numero_chasis = forms.CharField(max_length=50, label="Número de Chasis", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
-    numero_serie = forms.CharField(max_length=50, label="Número de Serie", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    reg_numero_chasis = forms.ChoiceField(
+        choices=[('', 'Seleccionar'), ('S', 'S - Sí'), ('N', 'N - No')],
+        label="REG Número de Chasis",
+        required=False,
+        widget=forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'})
+    )
+    numero_serie = forms.CharField(max_length=50, label="Número de Serie", required=False, widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
+    reg_numero_serie = forms.ChoiceField(
+        choices=[('', 'Seleccionar'), ('S', 'S - Sí'), ('N', 'N - No')],
+        label="REG Número de Serie",
+        required=False,
+        widget=forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'})
+    )
     numero_vin = forms.CharField(max_length=50, label="Número VIN", widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'}))
     observaciones = forms.CharField(widget=forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg', 'rows': 3}), required=False, label="Observaciones")
 
@@ -284,7 +351,7 @@ class FormularioTramiteForm(forms.ModelForm):
             'comprador_primer_apellido', 'comprador_segundo_apellido', 'comprador_nombres', 'comprador_documento',
             'comprador_direccion', 'comprador_ciudad', 'comprador_telefono',
             'marca', 'linea', 'color', 'modelo', 'cilindrada', 'capacidad', 'potencia', 'carroceria',
-            'numero_motor', 'numero_chasis', 'numero_serie', 'numero_vin',
+            'numero_motor', 'reg_numero_motor', 'numero_chasis', 'reg_numero_chasis', 'numero_serie', 'reg_numero_serie', 'numero_vin',
             'tipo_servicio', 'fecha_tramite', 'observaciones',
             'declaracion_importacion', 'fecha_importacion'
         ]

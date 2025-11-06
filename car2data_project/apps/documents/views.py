@@ -32,6 +32,24 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['processed_documents'] = user_documents.filter(status='completed').count()
         context['processing_documents'] = user_documents.filter(status__in=['pending', 'processing']).count()
         
+        # INFORMACIÓN DE SUSCRIPCIÓN
+        try:
+            subscription = self.request.user.subscription
+            context['subscription'] = subscription
+            context['documents_used'] = subscription.documents_used
+            context['documents_limit'] = subscription.get_documents_limit()
+            context['documents_remaining'] = subscription.get_remaining_documents()
+            context['can_upload'] = subscription.can_generate_document()
+            context['plan_name'] = subscription.get_plan_display()
+        except:
+            # Si no tiene suscripción, valores por defecto
+            context['subscription'] = None
+            context['documents_used'] = 0
+            context['documents_limit'] = 3
+            context['documents_remaining'] = 3
+            context['can_upload'] = True
+            context['plan_name'] = 'Starter'
+        
         return context
 
 class DocumentUploadView(LoginRequiredMixin, CreateView):
@@ -40,6 +58,23 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
     template_name = 'documents/upload.html'
     
     def form_valid(self, form):
+        # VERIFICAR LÍMITE DE DOCUMENTOS ANTES DE SUBIR
+        try:
+            subscription = self.request.user.subscription
+        except:
+            messages.error(self.request, 'No se encontró tu suscripción. Por favor, contacta al soporte técnico.')
+            return redirect('documents:dashboard')
+        
+        # Verificar si puede generar más documentos
+        if not subscription.can_generate_document():
+            messages.warning(
+                self.request,
+                f'Has alcanzado tu límite de {subscription.get_documents_limit()} documentos en el plan gratuito. '
+                f'¡Actualiza a Pro para obtener hasta 100 documentos por mes!'
+            )
+            return redirect('authentication:checkout')
+        
+        # Proceder con el guardado
         form.instance.user = self.request.user
         response = super().form_valid(form)
         
@@ -53,7 +88,11 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
             thread.daemon = True
             thread.start()
         
-        messages.success(self.request, 'Documento subido exitosamente. El procesamiento comenzará en breve.')
+        remaining = subscription.get_remaining_documents() - 1  # -1 porque estamos procesando uno ahora
+        messages.success(
+            self.request, 
+            f'Documento subido correctamente. Te quedan {remaining} documentos disponibles en tu plan actual.'
+        )
         return response
     
     def process_document_background(self, document_id):
@@ -70,7 +109,7 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
             
             # Verificar que el archivo existe
             if not document.file or not os.path.exists(document.file.path):
-                raise FileNotFoundError(f"El archivo no existe: {document.file.path if document.file else 'None'}")
+                raise FileNotFoundError(f"No se pudo encontrar el archivo: {document.file.path if document.file else 'No especificado'}")
             
             # Obtener la ruta del archivo
             pdf_path = document.file.path
@@ -81,7 +120,7 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
             
             # Probar conexión antes de procesar
             if not extractor.test_connection():
-                raise Exception("No se pudo establecer conexión con el servicio de IA")
+                raise Exception("No se pudo conectar con el servicio de inteligencia artificial. Por favor, verifica tu conexión a internet e inténtalo de nuevo.")
             
             logger.info("Conexión con Gemini establecida correctamente")
             
@@ -114,27 +153,35 @@ class DocumentUploadView(LoginRequiredMixin, CreateView):
                 document.error_message = ''
                 logger.info(f"Documento procesado exitosamente: {document.name}")
                 
+                # INCREMENTAR CONTADOR DE DOCUMENTOS USADOS
+                try:
+                    subscription = document.user.subscription
+                    subscription.increment_documents()
+                    logger.info(f"Contador incrementado. Documentos usados: {subscription.documents_used}/{subscription.get_documents_limit()}")
+                except Exception as e:
+                    logger.error(f"Error al actualizar el contador de documentos: {str(e)}")
+                
             except Exception as e:
-                logger.error(f"Error durante la extracción de datos: {str(e)}")
+                logger.error(f"Error durante el procesamiento del documento: {str(e)}")
                 logger.error(traceback.format_exc())
                 document.status = 'error'
-                document.error_message = f"Error al extraer datos: {str(e)}"
+                document.error_message = f"Error al procesar el documento: {str(e)}"
             
             document.save()
             
         except FileNotFoundError as e:
-            logger.error(f"Error de archivo no encontrado: {str(e)}")
+            logger.error(f"Error: Archivo no encontrado - {str(e)}")
             if document:
                 document.status = 'error'
-                document.error_message = f"Archivo no encontrado: {str(e)}"
+                document.error_message = f"No se pudo encontrar el archivo: {str(e)}"
                 document.save()
         except Exception as e:
-            logger.error(f"Error al procesar documento: {str(e)}")
+            logger.error(f"Error al procesar el documento: {str(e)}")
             logger.error(traceback.format_exc())
             
             if document:
                 document.status = 'error'
-                document.error_message = f"Error inesperado: {str(e)}"
+                document.error_message = f"Ocurrió un error inesperado: {str(e)}"
                 document.save()
                 logger.info(f"Documento {document_id} marcado como error")
 

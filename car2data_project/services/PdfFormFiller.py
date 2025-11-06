@@ -41,14 +41,15 @@ class PDFFormFiller:
             'contrato_mandato': {
                 'vehiculo': ['placa'],
                 'mandante': ['nombre', 'documento'],
-                'mandatario': ['nombre', 'documento']
+                # Mandatario opcional: permitir generar sin datos de mandatario
+                'mandatario': []
             }
         }
         self.field_coordinates = {
             'formulario_tramite': {
                 # Placa - Campo 2 (corregido para alinearse con campos reales)
                 'placa_letras': (745, 495),    # Posición exacta del campo letras
-                'placa_numeros': (765, 495),   # Posición exacta del campo números
+                'placa_numeros': (770, 495),   # Posición exacta del campo números
 
                 # Campos de vehículo (reposicionados según cuadrícula)
                 'marca': (390, 460),              # Campo 5 - posición corregida
@@ -58,18 +59,18 @@ class PDFFormFiller:
                 'cilindrada': (720, 430),         # Campo 10 - posición corregida
 
                 # Capacidad, Blindaje, Potencia (reajustados)
-                'capacidad': (390, 410),          # Campo 11        # Campo 13 NO
-                'potencia': (720, 410),           # Campo 14
+                'capacidad': (390, 405),          # Campo 11        # Campo 13 NO
+                'potencia': (720, 405),           # Campo 14
 
                 # Tipo de combustible (fila de checkboxes) - reposicionados
-                'combustible_gasolina': (570, 465),
-                'combustible_diesel': (595, 465),
-                'combustible_gas': (625, 465),
-                'combustible_mixto': (655, 465),
-                'combustible_electrico': (685, 465),
-                'combustible_hidrogeno': (715, 465),
-                'combustible_etanol': (745, 465),
-                'combustible_biodiesel': (775, 465),
+                'combustible_gasolina': (575, 453),
+                'combustible_diesel': (606, 453),
+                'combustible_gas': (626, 453),
+                'combustible_mixto': (656, 453),
+                'combustible_electrico': (686, 453),
+                'combustible_hidrogeno': (716, 453),
+                'combustible_etanol': (746, 453),
+                'combustible_biodiesel': (776, 453),
 
                 # Clase de vehículo (reposicionados según cuadrícula)
                 'clase_automovil': (30, 370),
@@ -88,12 +89,18 @@ class PDFFormFiller:
                 'clase_otro': (320, 350),
 
                 # Carrocería - Campo 15 (corregido)
-                'carroceria': (390, 350),
+                'carroceria': (390, 345),
 
                 # Identificación del vehículo - Campo 16 (coordenadas corregidas)
                 'numero_motor': (600, 370),
-                'numero_chasis': (600, 340),
+                'reg_motor_n': (780, 370),  # REG Motor = N
+                'reg_motor_s': (755, 370),  # REG Motor = S
+                'numero_chasis': (600, 350),
+                'reg_chasis_n': (780, 345),  # REG Chasis = N
+                'reg_chasis_s': (755, 345),  # REG Chasis = S
                 'numero_serie': (600, 320),
+                'reg_serie_n': (780, 320),  # REG Serie = N
+                'reg_serie_s': (755, 320),  # REG Serie = S
                 'numero_vin': (600, 290),
 
                 # Tipo de servicio - Campo 18 (coordenadas corregidas según imagen)
@@ -112,7 +119,7 @@ class PDFFormFiller:
                 # Tipo de documento del propietario (reajustados)
 
 
-                'propietario_documento': (320, 270),
+                'propietario_documento': (320, 265),
                 'propietario_direccion': (30, 240),
                 'propietario_ciudad': (205, 240),
                 'propietario_telefono': (320, 240),
@@ -162,19 +169,19 @@ class PDFFormFiller:
                 'motor': (140, 493),
                 'chasis': (370, 493),
                 'color': (140, 481),
-                'matriculado_en': (390, 481),
+                'matriculado_en': (400, 481),
                 'vin': (140, 468),
                 'serie': (370, 468),
                 
                 # Precio (coordenadas ajustadas)
                 'precio_numeros': (440, 440),
-                'precio_letras': (80, 420),
+                'precio_letras': (80, 422),
                 
                 # Forma de pago (reposicionado)
                 'forma_pago': (190, 377),
                 
                 # Lugar y fecha (coordenadas corregidas según imagen)
-                'ciudad_contrato': (340, 260),
+                'ciudad_contrato': (350, 260),
                 'dia_contrato': (520, 260),
                 'mes_contrato': (160, 245),
                 'año_contrato': (380, 245),
@@ -394,8 +401,41 @@ class PDFFormFiller:
         
         # NÚMEROS DE IDENTIFICACIÓN DEL VEHÍCULO (con auto-ajuste para cadenas largas)
         self._draw_text_fit_if_coord(canvas_obj, coords, 'numero_motor', getv('numero_motor'), max_width=260)
+        # REG Motor
+        reg_motor_raw = getv('reg_numero_motor')
+        reg_motor = str(reg_motor_raw).upper().strip() if reg_motor_raw and str(reg_motor_raw).lower() not in ['no disponible', 'none', ''] else ''
+        logger.info(f"REG Motor valor raw: '{reg_motor_raw}' -> procesado: '{reg_motor}'")
+        if reg_motor == 'N':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_motor_n', True, font_size=10)
+            logger.info("Marcando REG Motor = N")
+        elif reg_motor == 'S':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_motor_s', True, font_size=10)
+            logger.info("Marcando REG Motor = S")
+        
         self._draw_text_fit_if_coord(canvas_obj, coords, 'numero_chasis', getv('numero_chasis'), max_width=260)
+        # REG Chasis
+        reg_chasis_raw = getv('reg_numero_chasis')
+        reg_chasis = str(reg_chasis_raw).upper().strip() if reg_chasis_raw and str(reg_chasis_raw).lower() not in ['no disponible', 'none', ''] else ''
+        logger.info(f"REG Chasis valor raw: '{reg_chasis_raw}' -> procesado: '{reg_chasis}'")
+        if reg_chasis == 'N':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_chasis_n', True, font_size=10)
+            logger.info("Marcando REG Chasis = N")
+        elif reg_chasis == 'S':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_chasis_s', True, font_size=10)
+            logger.info("Marcando REG Chasis = S")
+        
         self._draw_text_fit_if_coord(canvas_obj, coords, 'numero_serie', getv('numero_serie'), max_width=260)
+        # REG Serie
+        reg_serie_raw = getv('reg_numero_serie')
+        reg_serie = str(reg_serie_raw).upper().strip() if reg_serie_raw and str(reg_serie_raw).lower() not in ['no disponible', 'none', ''] else ''
+        logger.info(f"REG Serie valor raw: '{reg_serie_raw}' -> procesado: '{reg_serie}'")
+        if reg_serie == 'N':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_serie_n', True, font_size=10)
+            logger.info("Marcando REG Serie = N")
+        elif reg_serie == 'S':
+            self._draw_checkbox_if_coord(canvas_obj, coords, 'reg_serie_s', True, font_size=10)
+            logger.info("Marcando REG Serie = S")
+        
         self._draw_text_fit_if_coord(canvas_obj, coords, 'numero_vin', getv('numero_vin', ['vin']), max_width=260)
         
         # CHECKBOXES PARA COMBUSTIBLE
@@ -625,6 +665,11 @@ class PDFFormFiller:
         self._draw_text_if_coord(canvas_obj, coords, 'motor', vehiculo.get('numero_motor', ''), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'chasis', vehiculo.get('numero_chasis', ''), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'color', vehiculo.get('color', '').upper(), font_size=fs)
+        
+        # MATRICULADO EN (organismo de tránsito)
+        organismo = data.get('organismo_transito', '').upper()
+        self._draw_text_if_coord(canvas_obj, coords, 'matriculado_en', organismo, font_size=fs)
+        
         self._draw_text_if_coord(canvas_obj, coords, 'vin', vehiculo.get('vin', ''), font_size=fs)
         self._draw_text_if_coord(canvas_obj, coords, 'serie', vehiculo.get('numero_serie', ''), font_size=fs)
         
@@ -641,11 +686,26 @@ class PDFFormFiller:
         self._draw_text_if_coord(canvas_obj, coords, 'forma_pago', data.get('forma_pago', ''), font_size=fs)
 
         # CIUDAD Y FECHA DEL CONTRATO
-        ciudad_cv = (data.get('ciudad_contrato') or vendedor.get('ciudad') or comprador.get('ciudad') or '').upper()
+        # Usar ciudad_contrato del formulario, sin fallback automático
+        ciudad_cv = data.get('ciudad_contrato', '').upper()
         self._draw_text_if_coord(canvas_obj, coords, 'ciudad_contrato', ciudad_cv, font_size=fs)
 
         # FECHA DEL CONTRATO
-        today = datetime.now()
+        # Usar fecha del formulario si está disponible, sino fecha actual
+        fecha_contrato = data.get('fecha_contrato')
+        if fecha_contrato:
+            if isinstance(fecha_contrato, str):
+                from datetime import datetime as dt
+                try:
+                    fecha_obj = dt.fromisoformat(fecha_contrato)
+                except:
+                    fecha_obj = datetime.now()
+            else:
+                fecha_obj = fecha_contrato
+        else:
+            fecha_obj = datetime.now()
+        
+        today = fecha_obj
         self._draw_text_if_coord(canvas_obj, coords, 'dia_contrato', str(today.day), font_size=fs)
         
         meses_es = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -679,6 +739,10 @@ class PDFFormFiller:
         mandatario_documento = self._clean_document_number(mandatario.get('documento', ''))
 
         logger.info(f"Rellenando contrato de mandato - Mandante: {mandante.get('nombre', 'N/A')}")
+        logger.info(f"Datos completos del mandante: {mandante}")
+        logger.info(f"Datos completos del mandatario: {mandatario}")
+        logger.info(f"Datos completos del vehículo: {vehiculo}")
+        logger.info(f"Todos los datos recibidos: {data}")
         fs = 11  # tamaño de fuente ligeramente mayor
         
         # Usar los datos limpios en el PDF
@@ -737,8 +801,8 @@ class PDFFormFiller:
         """Dibujar texto solo si existe la coordenada para ese campo, evitando desbordar el ancho de página."""
         if field_name in coords and text and str(text).strip():
             x, y = coords[field_name]
-            # Truncar texto muy largo para que quepa en el campo visualmente
-            text_str = str(text).strip()[:50]  # Máximo 50 caracteres
+            # Convertir a mayúsculas y truncar texto muy largo
+            text_str = str(text).strip().upper()[:50]  # Máximo 50 caracteres en MAYÚSCULAS
             # Medir y ajustar si se sale del ancho de la página
             try:
                 from reportlab.pdfbase import pdfmetrics
@@ -753,7 +817,7 @@ class PDFFormFiller:
             canvas_obj.drawString(x, y, text_str)
             logger.debug(f"Texto dibujado en {field_name} ({x}, {y}) size={font_size}: {text_str}")
     
-    def _draw_checkbox_if_coord(self, canvas_obj, coords, field_name, checked=False):
+    def _draw_checkbox_if_coord(self, canvas_obj, coords, field_name, checked=False, font_size=9):
         """Dibujar checkbox solo si existe la coordenada"""
         if field_name in coords and checked:
             x, y = coords[field_name]
@@ -764,8 +828,10 @@ class PDFFormFiller:
                 y = max(10, min(y, page_h - 10))
             except Exception:
                 pass
+            # Establecer fuente y tamaño para la X
+            canvas_obj.setFont(self.default_font, font_size)
             canvas_obj.drawString(x, y, "X")
-            logger.debug(f"Checkbox marcado en {field_name} ({x}, {y})")
+            logger.info(f"Checkbox marcado en {field_name} ({x}, {y}) con tamaño {font_size}")
 
     def _draw_plate_group(self, canvas_obj, coords, letras, numeros):
         """Dibuja placa letras y números preservando el espaciado relativo, evitando superposición al ajustar por borde derecho."""

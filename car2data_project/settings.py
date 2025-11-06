@@ -13,8 +13,19 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent / '.env'
+    load_dotenv(env_path, override=True)
+    print(f"✓ Archivo .env cargado desde: {env_path}")
+    print(f"✓ GEMINI_API_KEY configurada: {os.environ.get('GEMINI_API_KEY', 'NO CONFIGURADA')[:20]}...")
+except ImportError:
+    print("⚠ python-dotenv no está instalado")
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,7 +37,13 @@ SECRET_KEY = "django-insecure-brbir@cjkx6qcsgkgnch5ct*g+d_(a%yfx2v6o(4&qwmi1emji
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '192.168.1.7',  # Tu IP local para testing móvil
+    '0.0.0.0',
+    # Agrega más IPs locales según necesites
+]
 
 
 # Application definition
@@ -45,6 +62,12 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    # Custom apps
+    "apps.authentication",
+    "apps.documents",
+    "apps.vehicles",
+    "apps.forms_generation",
+    "apps.administration",
 ]
 
 # django-allauth settings
@@ -55,15 +78,27 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
+# Allauth Configuration
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_SIGNUP_REDIRECT_URL = "/dashboard/"
 
-# Google provider configuration (optional: via env variables)
+# Social account settings
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Google provider configuration
+# IMPORTANTE: Usa SOLO la configuración del Django Admin (SocialApp)
+# NO uses configuración inline si ya tienes SocialApp en la base de datos
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": [
@@ -71,12 +106,12 @@ SOCIALACCOUNT_PROVIDERS = {
             "email",
         ],
         "AUTH_PARAMS": {"access_type": "online"},
-        # Enable either admin SocialApp configuration or inline APP config via env
-        "APP": {
-            "client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),
-            "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
-            "key": "",
-        },
+        # Configuración inline comentada - usar solo Django Admin
+        # "APP": {
+        #     "client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),
+        #     "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+        #     "key": "",
+        # },
     }
 }
 
@@ -88,6 +123,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "car2data_project.urls"
@@ -95,7 +131,7 @@ ROOT_URLCONF = "car2data_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -144,7 +180,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
 TIME_ZONE = "UTC"
 
@@ -157,8 +193,32 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Media files
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# AI Services API Keys
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+# Email Configuration
+# Para desarrollo: muestra emails en consola
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Car2Data <noreply@car2data.com>'
+
+# Para producción: descomentar y configurar con SMTP real
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Car2Data <noreply@car2data.com>')

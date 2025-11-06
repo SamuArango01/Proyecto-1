@@ -1,0 +1,62 @@
+# Core framework
+Django==4.2.7
+
+djangorestframework==3.14.0
+
+# Database
+PyMySQL==1.1.0
+cryptography>=42.0.0
+
+# File processing
+pypdf==4.0.2
+PyPDF2==3.0.1
+python-docx==1.1.0
+Pillow>=10.0.0
+pdf2image==1.17.0
+pytesseract==0.3.10
+
+# PDF generation
+reportlab==4.0.7
+num2words==0.5.12
+
+# AI services
+openai>=1.30.0
+google-generativeai==0.7.2
+
+# Forms and UI
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+
+# Security and auth
+django-cors-headers==4.3.1
+django-allauth==0.57.0
+
+# Utilities
+python-dateutil==2.8.2
+python-magic-bin==0.4.14
+python-decouple==3.8
+python-dotenv>=1.0.0
+
+# Dev tools
+pytest==7.4.3
+pytest-django==4.7.0
+coverage==7.3.2
+black==23.10.1
+flake8==6.1.0
+ipdb==0.13.13
+django-debug-toolbar==4.2.0
+django-extensions==3.2.3
+Faker==19.12.0
+
+# Async and caching
+celery==5.3.4
+redis>=5.0.1
+
+# Storage and cloud
+django-storages==1.14.2
+boto3>=1.29.7,<2.0
+
+# Production extras
+gunicorn>=21.0.0
+whitenoise>=6.5.0
+sentry-sdk>=1.35.0

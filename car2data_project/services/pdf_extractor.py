@@ -17,17 +17,20 @@ class PDFExtractor:
         # Usar la configuración de Django
         self.api_key = getattr(settings, 'GEMINI_API_KEY', '')
         if not self.api_key:
-            logger.error("GEMINI_API_KEY no está configurada en settings")
-            raise ValueError("GEMINI_API_KEY no está configurada en settings")
-        
+            logger.error("La clave de API de Gemini no está configurada en los ajustes")
+            raise ValueError("La clave de API de Gemini no está configurada en los ajustes")
         # Configurar Gemini
         try:
+            # Configurar con la API key
             genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
-            logger.info("Gemini configurado correctamente")
+            
+            # Usar gemini-2.0-flash-exp (versión experimental más reciente)
+            self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            logger.info("Gemini configurado correctamente con gemini-2.0-flash-exp")
+                
         except Exception as e:
-            logger.error(f"Error al configurar Gemini: {str(e)}")
-            raise
+            logger.error(f"Error en la respuesta de Gemini: {str(e)}")
+            raise Exception(f"Error al procesar el documento con la inteligencia artificial: {str(e)}")
         
         # Prompt especializado para tarjeta de propiedad
         self.base_prompt = """
@@ -54,12 +57,15 @@ class PDFExtractor:
                 "clase_vehiculo": "Clasificación general del tipo de vehículo, como automóvil, motocicleta, camión, etc.",
                 "tipo_carroceria": "Se refiere a la estructura principal y forma del vehículo, por ejemplo, SEDAN, hatchback, SUV, etc.",
                 "numero_motor": "Identificador alfanumérico único grabado en el motor.",
+                "reg_numero_motor": "Campo REG asociado a número de motor. Devuelve solo 'S' (sí) o 'N' (no).",
                 "servicio": "Indica el uso que se le da al vehículo, como particular, público, diplomático, etc.",
                 "combustible": "El tipo de carburante que utiliza el motor, como gasolina, diésel, o eléctrico.",
                 "capacidad_kg_psj": "La capacidad de carga del vehículo, expresada en kilogramos (Kg) o el número de pasajeros (PSJ) que puede transportar.",
                 "vin": "Es un código de identificación único mundialmente para cada vehículo automotor.",
                 "numero_serie": "Identificador único del vehículo que se usa para su seguimiento y registro.",
+                "reg_numero_serie": "Campo REG asociado a número de serie. Devuelve solo 'S' (sí) o 'N' (no).",
                 "numero_chasis": "Identificador único del vehículo que se usa para su seguimiento y registro.",
+                "reg_numero_chasis": "Campo REG asociado a número de chasis. Devuelve solo 'S' (sí) o 'N' (no).",
                 "potencia_hp": "La potencia del motor expresada en caballos de fuerza (HP).",
                 "puertas": "El número de puertas que tiene el vehículo."
             },
@@ -128,8 +134,8 @@ class PDFExtractor:
                 return self.create_default_structure(response_text)
                 
         except json.JSONDecodeError as e:
-            logger.error(f"Error al parsear JSON: {str(e)}")
-            return self.create_default_structure(response_text)
+            logger.error(f"Error al leer el archivo PDF: {str(e)}")
+            raise Exception(f"No se pudo leer el archivo PDF: {str(e)}")
     
     def create_default_structure(self, raw_response: str = "") -> dict:
         """Crea una estructura JSON por defecto"""
@@ -145,12 +151,15 @@ class PDFExtractor:
                 "clase_vehiculo": "No disponible",
                 "tipo_carroceria": "No disponible",
                 "numero_motor": "No disponible",
+                "reg_numero_motor": "No disponible",
                 "servicio": "No disponible",
                 "combustible": "No disponible",
                 "capacidad_kg_psj": "No disponible",
                 "vin": "No disponible",
                 "numero_serie": "No disponible",
+                "reg_numero_serie": "No disponible",
                 "numero_chasis": "No disponible",
+                "reg_numero_chasis": "No disponible",
                 "potencia_hp": "No disponible",
                 "puertas": "No disponible"
             },
@@ -189,5 +198,5 @@ class PDFExtractor:
             response = self.model.generate_content(test_prompt)
             return bool(response and response.text)
         except Exception as e:
-            logger.error(f"Error en test de conexión: {str(e)}")
-            return False
+            logger.error(f"Error inesperado al extraer información: {str(e)}")
+            raise Exception(f"Ocurrió un error inesperado al procesar el documento. Por favor, inténtalo de nuevo más tarde.")

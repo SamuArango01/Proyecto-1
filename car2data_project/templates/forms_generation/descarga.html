@@ -88,6 +88,15 @@
                 </svg>
                 Vista Previa
             </a>
+
+            <!-- Volver a editar datos (regresa a generate_form preservando campos) -->
+            <button type="button" onclick="window.history.back()"
+               class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-turquoise transition duration-200">
+                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Volver a editar datos
+            </button>
             {% else %}
             <div class="text-center text-gray-500">
                 <p>Error: No se pudo generar el archivo PDF</p>
@@ -253,8 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Marcar como descargado automáticamente
         sessionStorage.setItem('auto_downloaded_{{ generated_form.id }}', 'true');
         
-        // Opcional: mostrar notificación de descarga iniciada
-        showNotification('Descarga iniciada automáticamente', 'info');
+        // Mostrar notificación indicando que el documento está listo
+        showNotification('Documento generado listo para descarga', 'info');
     }
 });
 </script>

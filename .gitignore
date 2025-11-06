@@ -8,8 +8,6 @@ build/
 
 # Django
 *.log
-media/
-staticfiles/
 
 # Environment
 .env
