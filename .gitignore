@@ -8,9 +8,14 @@ build/
 
 # Django
 *.log
+logs/*.log
+staticfiles/
+media/
 
 # Environment
 .env
+.env.production
+.env.local
 venv/
 env/
 
